@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -827,4 +827,41 @@ test('state diagrams round trip, keep names safe, and refuse what they cannot ho
   const l = loose(back.diagram);
   assert.deepEqual(l.alone.map((s) => s.name), ['Lonely']);
   assert.deepEqual(duplicateNames({ states: [{ id: 'a', name: 'X' }, { id: 'b', name: ' x ' }], transitions: [], direction: 'TB' }), [' x '.trim()]);
+});
+
+test('entity relationship diagrams round trip, keep names safe, and refuse what they cannot hold', () => {
+  const d = starterEr();
+  d.direction = 'LR';
+  d.entities[0].name = 'Line item';
+  d.entities[0].attributes[1].type = 'varchar(20)';
+  d.entities[0].attributes[1].comment = 'a "quoted"; note';
+  d.entities.push({ id: 'e9', name: 'Lonely', attributes: [] });
+  d.relationships[1].identifying = false;
+  d.relationships[1].cardA = 'zeroOne';
+  const text = erToMermaid(d, { title: 'Shop', description: 'Things' });
+  assert.match(text, /^---\ntitle: "Shop"\n---\nerDiagram/);
+  assert.match(text, /    direction LR/);
+  assert.match(text, /"Line item" \{/);
+  assert.match(text, /        int id PK/);
+  assert.match(text, /"Line item" \|\|--o\{ ORDER : "places"/);
+  assert.match(text, /ORDER \|o\.\.\|\{ PRODUCT : "contains"/);
+  const back = erFromMermaid(text);
+  assert.equal(back.ok, true, back.reason);
+  assert.equal(back.title, 'Shop');
+  assert.equal(back.diagram.direction, 'LR');
+  assert.deepEqual(back.diagram.entities.map((e) => e.name), ['Line item', 'ORDER', 'PRODUCT', 'Lonely']);
+  assert.equal(back.diagram.entities[0].attributes[1].type, 'varchar(20)');
+  assert.equal(back.diagram.entities[0].attributes[1].comment, "a 'quoted'; note");
+  assert.deepEqual(back.diagram.relationships.map((r) => [r.cardA, r.cardB, r.identifying, r.label]), [['one', 'zeroMany', true, 'places'], ['zeroOne', 'oneMany', false, 'contains']]);
+  assert.equal(erToMermaid(back.diagram, { title: 'Shop', description: 'Things' }), text);
+  assert.deepEqual(unconnected(back.diagram).map((e) => e.name), ['Lonely']);
+  const loose = erFromMermaid('erDiagram\n  A ||--o{ B : places order\n  A {\n    string x PK\n  }');
+  assert.equal(loose.ok, true);
+  assert.equal(loose.diagram.relationships[0].label, 'places order');
+  assert.equal(erFromMermaid('erDiagram\n  A {\n    int x PK, FK\n  }').ok, false);
+  assert.equal(erFromMermaid('erDiagram\n  p[Person] {\n    int x\n  }').ok, false);
+  assert.equal(erFromMermaid('erDiagram\n  A:::foo ||--o{ B : x').ok, false);
+  assert.equal(erFromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(erFromMermaid(TEMPLATES.find((x) => x.id === 'er').source).ok);
+  assert.equal(erToMermaid({ entities: [], relationships: [], direction: 'TB' }, { title: '', description: '' }), '');
 });

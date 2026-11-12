@@ -22,7 +22,9 @@ import { SankeyEditor } from './sankeyEditor';
 import { TreemapEditor } from './treemapEditor';
 import { PacketEditor } from './packetEditor';
 import { StateEditor } from './stateEditor';
+import { ErEditor } from './erEditor';
 import { packetFromMermaid, starterPacket, type Packet } from './packet';
+import { erFromMermaid, starterEr, type ErDiagram } from './er';
 import { stateFromMermaid, starterState, type StateDiagram } from './state';
 import { treemapFromMermaid, starterTreemap, type Treemap } from './treemap';
 import { sankeyFromMermaid, starterSankey, type Sankey } from './sankey';
@@ -100,6 +102,7 @@ type Loaded =
   | ({ ok: true; kind: 'treemap'; treemap: Treemap } & Meta)
   | ({ ok: true; kind: 'packet'; packet: Packet } & Meta)
   | ({ ok: true; kind: 'state'; state: StateDiagram } & Meta)
+  | ({ ok: true; kind: 'er'; er: ErDiagram } & Meta)
   | { ok: false; reason: string };
 
 const KINDS: { id: Kind; name: string }[] = [
@@ -118,6 +121,7 @@ const KINDS: { id: Kind; name: string }[] = [
   { id: 'treemap', name: 'Treemap' },
   { id: 'packet', name: 'Packet diagram' },
   { id: 'state', name: 'State diagram' },
+  { id: 'er', name: 'Entity relationship diagram' },
 ];
 type Mode = 'visual' | 'code';
 
@@ -271,6 +275,10 @@ export class DiagramEditor {
       const result = pieFromMermaid(text);
       return result.ok ? { ...result, kind: 'pie' } : result;
     }
+    if (type === 'er') {
+      const result = erFromMermaid(text);
+      return result.ok ? { ...result, kind: 'er', er: result.diagram } : result;
+    }
     if (type === 'state') {
       const result = stateFromMermaid(text);
       return result.ok ? { ...result, kind: 'state', state: result.diagram } : result;
@@ -346,6 +354,7 @@ export class DiagramEditor {
     else if (kind === 'gantt') this.kindEditor = new GanttEditor(this.kindApi(), from?.kind === 'gantt' ? from.diagram : starterGantt(), !from);
     else if (kind === 'journey') this.kindEditor = new JourneyEditor(this.kindApi(), from?.kind === 'journey' ? from.journey : starterJourney(), !from);
     else if (kind === 'pie') this.kindEditor = new PieEditor(this.kindApi(), from?.kind === 'pie' ? from.pie : starterPie(), !from);
+    else if (kind === 'er') this.kindEditor = new ErEditor(this.kindApi(), from?.kind === 'er' ? from.er : starterEr(), !from);
     else if (kind === 'state') this.kindEditor = new StateEditor(this.kindApi(), from?.kind === 'state' ? from.state : starterState(), !from);
     else if (kind === 'packet') this.kindEditor = new PacketEditor(this.kindApi(), from?.kind === 'packet' ? from.packet : starterPacket(), !from);
     else if (kind === 'treemap') this.kindEditor = new TreemapEditor(this.kindApi(), from?.kind === 'treemap' ? from.treemap : starterTreemap(), !from);

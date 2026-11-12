@@ -85,6 +85,10 @@ Choose **Treemap** in the diagram type menu. The editor is an outline: each row 
 
 Choose **State diagram** in the diagram type menu. The first list holds your states; the second holds the transitions between them. Each transition is picked from the states you have named, plus **Start** (the black dot) and **End** (the ringed dot), and can carry a label for what triggers it. **Add state** and **Add transition** add to the end, the arrow buttons (or Alt with the up and down arrow keys) reorder either list, and removing a state removes its transitions. The side panel sets the direction and points out states with no transitions, nothing leading to them, or no way out. Diagrams with nested states, forks, choices, notes or styling open in Code mode.
 
+### Entity relationship diagrams
+
+Choose **Entity relationship diagram** in the diagram type menu. Each entity is a card: give it a name, then add attributes with a type, a name, an optional key (primary, foreign or unique) and an optional comment. Relationships read as a sentence, such as one CUSTOMER places zero or more ORDER: pick the two entities, how many of each take part, and a label. The tick box on a relationship chooses a solid line (identifying) or a dotted one. Removing an entity removes its relationships, and the arrow buttons (or Alt with the up and down arrow keys) reorder entities, attributes and relationships. Diagrams with aliases, several keys on one attribute or styling open in Code mode.
+
 ### Packet diagrams
 
 Choose **Packet diagram** in the diagram type menu. Each row is a field: type its name and its width in bits, and the bits it covers (0–15, 16–31 and so on) work themselves out as fields run one after another from bit 0. **Add field** and **Add 1-bit flag** add to the end, the arrow buttons (or Alt with the up and down arrow keys) reorder fields and the ranges follow along. The side panel totals the bits and bytes. Diagrams whose fields leave gaps or do not start at bit 0 open in Code mode.

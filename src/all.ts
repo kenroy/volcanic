@@ -18,3 +18,4 @@ export * from './sankey';
 export * from './treemap';
 export * from './packet';
 export * from './state';
+export * from './er';
