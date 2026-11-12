@@ -22,3 +22,4 @@ export * from './er';
 export * from './classDiagram';
 export * from './architecture';
 export * from './block';
+export * from './gitGraph';

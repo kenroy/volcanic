@@ -101,6 +101,10 @@ Choose **Architecture diagram** in the diagram type menu. The first list holds t
 
 Choose **Block diagram** in the diagram type menu. Blocks fill a grid from left to right, starting a new row when the next one will not fit, and each row of the list says which row and columns the block lands in. Give each block a label, a shape and how many columns it spans, or add an empty space to leave a gap. The side panel sets how many columns go across. Links join one block to another, as an arrow or a plain line with an optional label. Removing a block removes its links, and the arrow buttons (or Alt with the up and down arrow keys) reorder blocks and links. Diagrams with nested blocks, block arrows, colours or styled lines open in Code mode.
 
+### Git graphs
+
+Choose **Git graph** in the diagram type menu. The history is a list of steps in the order they happen: commit, create a branch, switch to a branch, merge a branch, or cherry-pick a commit. Each step shows its details (an optional commit id, tag and kind such as highlighted or reverted) and the branch you are on afterwards; creating a branch switches to it, as in Git. Branch pickers offer the branches you have created. If a step cannot work, such as merging a branch that does not exist yet, the side panel says so. The side panel also sets which way time runs, and the arrow buttons (or Alt with the up and down arrow keys) reorder steps. Graphs with commit messages or configuration open in Code mode.
+
 ### Packet diagrams
 
 Choose **Packet diagram** in the diagram type menu. Each row is a field: type its name and its width in bits, and the bits it covers (0–15, 16–31 and so on) work themselves out as fields run one after another from bit 0. **Add field** and **Add 1-bit flag** add to the end, the arrow buttons (or Alt with the up and down arrow keys) reorder fields and the ranges follow along. The side panel totals the bits and bytes. Diagrams whose fields leave gaps or do not start at bit 0 open in Code mode.

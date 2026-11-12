@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses, architectureToMermaid, architectureFromMermaid, starterArchitecture, unconnectedElements, blockToMermaid, blockFromMermaid, starterBlocks, placeBlocks, tooWide } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses, architectureToMermaid, architectureFromMermaid, starterArchitecture, unconnectedElements, blockToMermaid, blockFromMermaid, starterBlocks, placeBlocks, tooWide, gitToMermaid, gitFromMermaid, starterGit, branchNames, branchAfter, gitProblem, blankStep } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -980,4 +980,44 @@ test('block diagrams round trip, place blocks on the grid, and refuse what they 
   assert.equal(blockFromMermaid('pie\n  "A" : 3').ok, false);
   assert.ok(blockFromMermaid(TEMPLATES.find((x) => x.id === 'block').source).ok);
   assert.equal(blockToMermaid({ columns: 0, blocks: [], links: [] }, { title: '', description: '' }), '');
+});
+
+test('git graphs round trip, track the current branch, and say what cannot work', () => {
+  const g = starterGit();
+  g.orientation = 'TB';
+  g.steps.push({ ...blankStep('g8', 'branch'), name: 'feature/x y', order: '2' });
+  g.steps.push({ ...blankStep('g9', 'commit'), commitId: 'Fix "it"', tag: 'v2', type: 'REVERSE' });
+  g.steps.push({ ...blankStep('g10', 'checkout'), name: 'main' });
+  g.steps.push({ ...blankStep('g11', 'cherry-pick'), commitId: 'Feature' });
+  const text = gitToMermaid(g, { title: 'Flow', description: 'History' });
+  assert.match(text, /^---\ntitle: "Flow"\n---\ngitGraph TB:\n    accTitle: Flow/);
+  assert.match(text, /    commit id: "Start"\n    commit\n    branch develop\n/);
+  assert.match(text, /    merge develop tag: "v1\.0"/);
+  assert.match(text, /    branch "feature\/x y" order: 2/);
+  assert.match(text, /    commit id: "Fix 'it'" tag: "v2" type: REVERSE/);
+  assert.match(text, /    cherry-pick id: "Feature"$/);
+  assert.match(gitToMermaid({ orientation: 'LR', steps: [{ ...blankStep('p', 'cherry-pick'), commitId: 'M', parent: 'P', tag: 't' }] }, { title: '', description: '' }), /cherry-pick id: "M" parent: "P" tag: "t"/);
+  const back = gitFromMermaid(text);
+  assert.equal(back.ok, true, back.reason);
+  assert.equal(back.title, 'Flow');
+  assert.equal(back.graph.orientation, 'TB');
+  assert.deepEqual(back.graph.steps.map((s) => s.action), ['commit', 'commit', 'branch', 'commit', 'checkout', 'merge', 'commit', 'branch', 'commit', 'checkout', 'cherry-pick']);
+  assert.equal(back.graph.steps[7].name, 'feature/x y');
+  assert.equal(back.graph.steps[8].type, 'REVERSE');
+  assert.equal(gitToMermaid(back.graph, { title: 'Flow', description: 'History' }), text);
+  assert.deepEqual(branchNames(back.graph), ['main', 'develop', 'feature/x y']);
+  assert.deepEqual(branchAfter(back.graph), ['main', 'main', 'develop', 'develop', 'main', 'main', 'main', 'feature/x y', 'feature/x y', 'main', 'main']);
+  assert.equal(gitProblem(g, { title: '', description: '' }), '');
+  const bad = { orientation: 'LR', steps: [blankStep('a', 'commit'), { ...blankStep('b', 'merge'), name: 'ghost' }] };
+  assert.match(gitProblem(bad, { title: '', description: '' }), /does not exist/);
+  const sw = gitFromMermaid('gitGraph\n  commit\n  branch dev\n  switch main\n  commit type: NORMAL');
+  assert.equal(sw.ok, true, sw.reason);
+  assert.equal(sw.graph.steps[2].action, 'checkout');
+  assert.equal(sw.graph.steps[3].type, '');
+  assert.equal(gitFromMermaid('gitGraph LR:\n  commit').graph.orientation, 'LR');
+  assert.equal(gitFromMermaid('gitGraph\n  commit id: "A" msg: "hello"').ok, false);
+  assert.equal(gitFromMermaid('%%{init: {"gitGraph": {"mainBranchName": "trunk"}}}%%\ngitGraph\n  commit').ok, false);
+  assert.equal(gitFromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(gitFromMermaid(TEMPLATES.find((x) => x.id === 'git').source).ok);
+  assert.equal(gitToMermaid({ steps: [], orientation: 'LR' }, { title: '', description: '' }), '');
 });
