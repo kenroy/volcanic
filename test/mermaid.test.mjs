@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses, architectureToMermaid, architectureFromMermaid, starterArchitecture, unconnectedElements, blockToMermaid, blockFromMermaid, starterBlocks, placeBlocks, tooWide, gitToMermaid, gitFromMermaid, starterGit, branchNames, branchAfter, gitProblem, blankStep } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses, architectureToMermaid, architectureFromMermaid, starterArchitecture, unconnectedElements, blockToMermaid, blockFromMermaid, starterBlocks, placeBlocks, tooWide, gitToMermaid, gitFromMermaid, starterGit, branchNames, branchAfter, gitProblem, blankStep, requirementToMermaid, requirementFromMermaid, starterRequirements, untraced, duplicateItems, blankItem } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -1020,4 +1020,48 @@ test('git graphs round trip, track the current branch, and say what cannot work'
   assert.equal(gitFromMermaid('pie\n  "A" : 3').ok, false);
   assert.ok(gitFromMermaid(TEMPLATES.find((x) => x.id === 'git').source).ok);
   assert.equal(gitToMermaid({ steps: [], orientation: 'LR' }, { title: '', description: '' }), '');
+});
+
+test('requirement diagrams round trip, keep text safe, and refuse what they cannot hold', () => {
+  const d = starterRequirements();
+  d.direction = 'LR';
+  d.items[0].text = 'Say "hi": it works; ok';
+  d.items[0].reqId = 'REQ-1';
+  d.items[1].name = 'second one';
+  d.items.push({ ...blankItem('q9', 'element'), name: 'suite', elementType: 'test suite', docRef: 'specs/a.md' });
+  d.items.push({ ...blankItem('q10', 'designConstraint'), name: 'limit', reqId: '9', text: 'Stay small', risk: '', verify: '' });
+  d.relations.push({ id: 'r9', from: 'q9', to: 'q10', kind: 'verifies' });
+  const text = requirementToMermaid(d, { title: 'Reqs', description: 'Things' });
+  assert.match(text, /^---\ntitle: "Reqs"\n---\nrequirementDiagram/);
+  assert.match(text, /    direction LR/);
+  assert.match(text, /    requirement test_req \{\n        id: "REQ-1"\n        text: "Say 'hi'#58; it works#59; ok"|        text: "Say 'hi': it works#59; ok"/);
+  assert.match(text, /    functionalRequirement "second one" \{/);
+  assert.match(text, /    element suite \{\n        type: "test suite"\n        docref: "specs\/a\.md"/);
+  assert.match(text, /    designConstraint limit \{\n        id: 9\n        text: "Stay small"\n    \}/);
+  assert.match(text, /    suite - verifies -> limit/);
+  const back = requirementFromMermaid(text);
+  assert.equal(back.ok, true, back.reason);
+  assert.equal(back.title, 'Reqs');
+  assert.equal(back.diagram.direction, 'LR');
+  assert.deepEqual(back.diagram.items.map((i) => [i.kind, i.name]), [['requirement', 'test_req'], ['functionalRequirement', 'second one'], ['element', 'test_entity'], ['element', 'suite'], ['designConstraint', 'limit']]);
+  assert.equal(back.diagram.items[0].text, "Say 'hi': it works; ok");
+  assert.deepEqual([back.diagram.items[0].risk, back.diagram.items[0].verify, back.diagram.items[4].risk, back.diagram.items[4].verify], ['high', 'test', '', '']);
+  assert.equal(back.diagram.items[3].docRef, 'specs/a.md');
+  assert.equal(requirementToMermaid(back.diagram, { title: 'Reqs', description: 'Things' }), text);
+  const reversed = requirementFromMermaid('requirementDiagram\n  requirement a {\n    id: 1\n    text: x\n    risk: High\n    verifymethod: Test\n  }\n  requirement b {\n    id: 2\n    text: y\n    risk: low\n    verifymethod: analysis\n  }\n  b <- contains - a');
+  assert.equal(reversed.ok, true, reversed.reason);
+  assert.deepEqual([reversed.diagram.relations[0].from, reversed.diagram.relations[0].to, reversed.diagram.relations[0].kind], ['q1', 'q2', 'contains']);
+  assert.equal(reversed.diagram.items[0].risk, 'high');
+  // A new, empty requirement and element still draw: Pele refuses empty quoted values, so blanks are left out.
+  const blank = { direction: 'TB', items: [blankItem('a', 'requirement'), blankItem('b', 'element')], relations: [] };
+  const blankText = requirementToMermaid(blank, { title: '', description: '' });
+  assert.doesNotMatch(blankText, /""/);
+  assert.equal(requirementFromMermaid(blankText).ok, true);
+  assert.deepEqual(untraced(starterRequirements()), []);
+  assert.deepEqual(duplicateItems({ items: [{ name: 'A' }, { name: ' a ' }], relations: [], direction: 'TB' }), ['a']);
+  assert.equal(requirementFromMermaid('requirementDiagram\n  requirement a {\n    id: 1\n    text: x\n    risk: low\n    verifymethod: test\n  }\n  style a fill:#f00').ok, false);
+  assert.equal(requirementFromMermaid('requirementDiagram\n  a - satisfies -> b').ok, false);
+  assert.equal(requirementFromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(requirementFromMermaid(TEMPLATES.find((x) => x.id === 'requirement').source).ok);
+  assert.equal(requirementToMermaid({ items: [], relations: [], direction: 'TB' }, { title: '', description: '' }), '');
 });

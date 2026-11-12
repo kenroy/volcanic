@@ -23,3 +23,4 @@ export * from './classDiagram';
 export * from './architecture';
 export * from './block';
 export * from './gitGraph';
+export * from './requirement';
