@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -729,4 +729,31 @@ test('Sankey diagrams round trip, keep commas and quotes safe, and spot loops', 
   assert.equal(sankeyFromMermaid('pie\n  "A" : 3').ok, false);
   assert.ok(sankeyFromMermaid(TEMPLATES.find((x) => x.id === 'sankey').source).ok);
   assert.equal(sankeyToMermaid({ flows: [] }, { title: '', description: '' }), '');
+});
+
+test('treemaps round trip, keep names safe, add up their contents and re-nest', () => {
+  const t = starterTreemap();
+  t.roots[0].children[0].name = 'R&D "labs"';
+  const text = treemapToMermaid(t, { title: 'Company', description: 'Where the people are' });
+  assert.match(text, /^---\ntitle: "Company"\n---\ntreemap-beta\n/);
+  const back = treemapFromMermaid(text);
+  assert.equal(back.ok, true);
+  assert.equal(back.title, 'Company');
+  assert.equal(back.description, 'Where the people are');
+  assert.deepEqual(flattenTree(back.treemap).map((p) => [p.depth, p.node.name, p.node.children.length ? null : p.node.value]), [[0, 'Company', null], [1, "R&D 'labs'", 40], [1, 'Sales', null], [2, 'Europe', 10], [2, 'Americas', 15], [1, 'Support', 15], [1, 'Design', 12]]);
+  assert.equal(sizeOf(back.treemap.roots[0]), 92);
+  // Re-nesting: Support goes inside Sales, then comes back out after it; the first box cannot go inside anything.
+  const moving = JSON.parse(JSON.stringify(back.treemap));
+  const ids = Object.fromEntries(flattenTree(moving).map((p) => [p.node.name, p.node.id]));
+  assert.equal(indentNode(moving, ids['Support']), true);
+  assert.equal(sizeOf(moving.roots[0].children[1]), 40);
+  assert.equal(outdentNode(moving, ids['Support']), true);
+  assert.equal(shiftNode(moving, ids['Support'], -1), true);
+  assert.equal(indentNode(moving, ids["R&D 'labs'"]), false);
+  assert.equal(treemapFromMermaid('treemap-beta\n"A": 10\n  "B": 1').ok, false);
+  assert.equal(treemapFromMermaid('treemap-beta\n"A"\n  "B": -2').ok, false);
+  assert.equal(treemapFromMermaid('treemap-beta\n"A"\n  "B": 1:::cls').ok, false);
+  assert.equal(treemapFromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(treemapFromMermaid(TEMPLATES.find((x) => x.id === 'treemap').source).ok);
+  assert.equal(treemapToMermaid({ roots: [] }, { title: '', description: '' }), '');
 });

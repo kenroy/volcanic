@@ -3547,3 +3547,78 @@ body.theme-dark {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
 }
+
+/* Treemap editor (its row buttons and warning reuse the radar editor's styles) */
+
+.volcanic-tm-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: var(--size-4-3);
+}
+
+.volcanic-tm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+  max-width: 760px;
+}
+
+.volcanic-tm-row {
+  --depth: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: var(--size-4-1) var(--size-4-2);
+  margin-left: calc(var(--depth) * 22px);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-left: 3px solid var(--interactive-accent);
+  border-radius: var(--radius-m);
+}
+
+.volcanic-tm-main {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.volcanic-tm .volcanic-tm-main .volcanic-tm-name {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+}
+
+.volcanic-tm .volcanic-tm-main .volcanic-tm-value {
+  width: 84px;
+  min-width: 84px;
+  max-width: 84px;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.volcanic-tm-total {
+  width: 84px;
+  flex: none;
+  padding: 0 var(--size-4-2);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-tm-actions {
+  display: flex;
+  gap: 2px;
+}
+
+@media (forced-colors: active) {
+  .volcanic-tm-row {
+    border-color: CanvasText;
+    border-left-color: Highlight;
+  }
+}

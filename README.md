@@ -75,6 +75,11 @@ Choose **Kanban board** in the diagram type menu. A board is columns of cards. D
 
 Choose **Sankey diagram** in the diagram type menu. Each row is a flow: where it comes from, where it goes and how much. Names you have already used are offered as you type, and **Add flow** starts the next flow from where the last one ended. The side panel lists every place with what goes in and out of it, and warns if flows loop back on themselves, which a Sankey diagram cannot draw. The arrow buttons (or Alt with the up and down arrow keys) reorder flows. A description is kept in Volcanic's comment, because Mermaid's Sankey has no description line. Negative amounts and unusual lines open in Code mode.
 
+
+### Treemaps
+
+Choose **Treemap** in the diagram type menu. The editor is an outline: each row is a box, indented to show what it sits inside. A box with others inside it adds them up; a box with nothing inside it has a size you type. Press Enter in a name to add a box beside it, use the plus button to add one inside, and use Alt with the arrow keys (or the buttons) to move a box up and down, put it inside the box above, or take it out. Sizes of 0 are flagged because those boxes are too small to see. Negative sizes, styled boxes (`:::class`) and unusual lines open in Code mode.
+
 ### Mind maps
 
 Choose **Mind map** in the diagram type menu. The central idea sits in the middle with its first branches to the right and the rest to the left, laid out the way Pele draws it, and every idea can be moved in three ways:
