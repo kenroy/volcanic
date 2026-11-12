@@ -40,7 +40,7 @@ export interface DiagramEdge {
 }
 
 export interface Diagram {
-  /** Shown above the diagram and used as its accessible name. Required to insert. */
+  /** Shown above the diagram and used as its accessible name. Optional, but without one the diagram has no accessible name. */
   title: string;
   /** Optional longer description for screen-reader users. */
   description: string;

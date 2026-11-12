@@ -453,7 +453,7 @@ export default class VolcanicPlugin extends Plugin {
         else {
           // Pele names the picture from accTitle; fall back to the front matter title.
           const svg = host.querySelector('svg');
-          const title = readTitle(text);
+          const title = readTitle(text) || readDescription(text);
           if (svg && title && !svg.hasAttribute('aria-labelledby')) svg.setAttribute('aria-label', title);
         }
       } catch (error) {
@@ -659,7 +659,7 @@ export default class VolcanicPlugin extends Plugin {
       setTaskDetails(el, source, this.settings.showTaskDetails);
       setHolidayBands(el, source, { legend: true, storageKey: `volcanic-holidays-off:${ctx.sourcePath}|${readTitle(source)}` });
       setDescription(el, this.settings.showDescription ? readDescription(source) : '', readTitleAlign(source));
-      const title = readTitle(source);
+      const title = readTitle(source) || readDescription(source);
       if (title && !svg.hasAttribute('aria-labelledby') && !svg.hasAttribute('aria-label')) svg.setAttribute('aria-label', title);
     };
     this.redraws.set(el, apply);

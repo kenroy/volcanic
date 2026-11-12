@@ -13,7 +13,7 @@ Build flowcharts by dragging shapes around a canvas and connecting them. The res
 
 ### Titles
 
-Every diagram needs a **Title** before it can be inserted. It is drawn above the diagram and is what screen readers announce. Flowcharts can also have a **Description**, a sentence for screen-reader users saying what the diagram shows. **Title position** puts it at the left, centre or right. The position applies wherever Volcanic draws the diagram; other Mermaid renderers centre it. In the Mermaid source the title is stored as front matter (`title:`), plus `accTitle` / `accDescr` for flowcharts.
+A **Title** is optional but recommended. It is drawn above the diagram and is what screen readers announce; without one, a short note under the field reminds you that screen-reader users will not hear a name for the diagram (a description is used as the name if there is one). Flowcharts can also have a **Description**, a sentence for screen-reader users saying what the diagram shows. **Title position** puts it at the left, centre or right. The position applies wherever Volcanic draws the diagram; other Mermaid renderers centre it. In the Mermaid source the title is stored as front matter (`title:`), plus `accTitle` / `accDescr` for flowcharts.
 
 ### Visual mode (flowcharts)
 

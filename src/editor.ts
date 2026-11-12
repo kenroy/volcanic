@@ -422,17 +422,17 @@ export class DiagramEditor {
     );
   }
 
-  /** Title (required) and description: what the diagram is, for everyone including screen-reader users. */
+  /** Title and description: what the diagram is, for everyone including screen-reader users. Both are optional; a note says what a missing title costs. */
   private buildMeta(): HTMLElement {
     const titleId = `${this.uid}-title`;
     const errorId = `${titleId}-error`;
     const descriptionId = `${this.uid}-description`;
     this.titleField = h('input', {
       class: 'volcanic-input',
-      attrs: { id: titleId, type: 'text', required: true, 'aria-required': 'true', 'aria-describedby': errorId, autocomplete: 'off', maxlength: '150' },
+      attrs: { id: titleId, type: 'text', 'aria-describedby': errorId, autocomplete: 'off', maxlength: '150' },
       on: { input: () => this.onTitleInput() },
     });
-    this.titleError = h('p', { class: 'volcanic-field-error', attrs: { id: errorId, hidden: true } });
+    this.titleError = h('p', { class: 'volcanic-hint volcanic-title-note', attrs: { id: errorId, hidden: true } });
     this.descriptionField = h('input', {
       class: 'volcanic-input',
       attrs: { id: descriptionId, type: 'text', autocomplete: 'off', maxlength: '300', 'aria-describedby': `${descriptionId}-hint` },
@@ -449,8 +449,7 @@ export class DiagramEditor {
         },
       },
     });
-    const required = h('span', { class: 'volcanic-required', text: ' (required)' });
-    const title = h('div', { class: 'volcanic-field volcanic-meta-title' }, h('label', { attrs: { for: titleId } }, 'Title', required), this.titleField, this.titleError);
+    const title = h('div', { class: 'volcanic-field volcanic-meta-title' }, h('label', { attrs: { for: titleId }, text: 'Title (recommended)' }), this.titleField, this.titleError);
     const description = h(
       'div',
       { class: 'volcanic-field volcanic-meta-description volcanic-visual-only' },
@@ -568,8 +567,6 @@ export class DiagramEditor {
   }
 
   private onTitleInput(): void {
-    if (!this.titleError.hidden) this.announce('');
-    this.setTitleError('');
     if (this.mode === 'visual' && this.kind !== 'flowchart') {
       this.renderOutput();
     } else if (this.mode === 'visual') {
@@ -584,10 +581,11 @@ export class DiagramEditor {
     }
   }
 
-  private setTitleError(message: string): void {
-    this.titleError.textContent = message;
-    this.titleError.hidden = !message;
-    setAttrs(this.titleField, { 'aria-invalid': message ? 'true' : null });
+  /** A gentle reminder, never a block: without a title the diagram has no name for screen readers. */
+  private updateTitleNote(): void {
+    const missing = !this.titleField.value.trim();
+    this.titleError.textContent = missing ? "Without a title, screen-reader users won't hear a name for this diagram. A description is read out too, if you add one." : '';
+    this.titleError.hidden = !missing;
   }
 
   private buildToolbar(): HTMLElement {
@@ -717,7 +715,6 @@ export class DiagramEditor {
           this.codeText = this.codeField.value;
           const title = readTitle(this.codeText);
           if (title || !this.codeText.trim()) this.titleField.value = title;
-          if (title) this.setTitleError('');
           this.titleAlignSelect.value = readTitleAlign(this.codeText);
           this.setThemeQuietly(readTheme(this.codeText));
         this.setFontQuietly(readFontSize(this.codeText));
@@ -1951,6 +1948,7 @@ export class DiagramEditor {
   // ───────────────────────────── Output ─────────────────────────────
 
   private renderOutput(): void {
+    this.updateTitleNote();
     if (this.mode === 'visual') this.codeView.textContent = this.getSource() || 'Nothing to show yet.';
     this.schedulePreview();
   }
@@ -2024,13 +2022,6 @@ export class DiagramEditor {
     const source = this.getSource();
     if (!source) {
       this.announce(this.mode === 'visual' ? 'Add at least one shape first.' : 'Type some Mermaid source first.');
-      return;
-    }
-    if (!readTitle(source)) {
-      const message = 'Give the diagram a title. It is shown above the diagram and read out by screen readers.';
-      this.setTitleError(message);
-      this.announce(message);
-      this.titleField.focus();
       return;
     }
     this.host.onSubmit(source);
