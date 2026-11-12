@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses, architectureToMermaid, architectureFromMermaid, starterArchitecture, unconnectedElements } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses, architectureToMermaid, architectureFromMermaid, starterArchitecture, unconnectedElements, blockToMermaid, blockFromMermaid, starterBlocks, placeBlocks, tooWide } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -946,4 +946,38 @@ test('architecture diagrams round trip, keep what they were given, and refuse wh
   assert.equal(architectureFromMermaid('pie\n  "A" : 3').ok, false);
   assert.ok(architectureFromMermaid(TEMPLATES.find((x) => x.id === 'architecture').source).ok);
   assert.equal(architectureToMermaid({ elements: [], connections: [] }, { title: '', description: '' }), '');
+});
+
+test('block diagrams round trip, place blocks on the grid, and refuse what they cannot hold', () => {
+  const d = starterBlocks();
+  d.blocks.push({ id: 'b9', shape: 'diamond', label: 'Say "hi"; ok', span: 2, code: '' });
+  d.blocks.push({ id: 'b10', shape: 'hexagon', label: 'Cache', span: 1, code: '' });
+  d.links.push({ id: 'l9', from: 'b3', to: 'b9', arrow: false, label: '' });
+  const text = blockToMermaid(d, { title: 'Web', description: 'A request' });
+  assert.match(text, /^---\ntitle: "Web"\n---\nblock-beta\n    columns 3\n    browser\["Browser"\] space server\["Server"\]\n    db\[\("Database"\)\]:3\n/);
+  assert.match(text, /say_hi_ok\{"Say #quot;hi#quot;#59; ok"\}:2 cache\{\{"Cache"\}\}/);
+  assert.match(text, /    browser -- "request" --> server/);
+  assert.match(text, /    server --- say_hi_ok/);
+  assert.match(text, /%% volcanic/);
+  const back = blockFromMermaid(text);
+  assert.equal(back.ok, true, back.reason);
+  assert.equal(back.title, 'Web');
+  assert.equal(back.description, 'A request');
+  assert.equal(back.diagram.columns, 3);
+  assert.deepEqual(back.diagram.blocks.map((b) => [b.shape, b.label, b.span]), [['rect', 'Browser', 1], ['space', '', 1], ['rect', 'Server', 1], ['cylinder', 'Database', 3], ['diamond', 'Say "hi"; ok', 2], ['hexagon', 'Cache', 1]]);
+  assert.deepEqual(back.diagram.links.map((l) => [l.arrow, l.label]), [[true, 'request'], [false, '']]);
+  assert.equal(blockToMermaid(back.diagram, { title: 'Web', description: 'A request' }), text);
+  assert.deepEqual(placeBlocks(back.diagram).map((p) => [p.row, p.from, p.to]), [[1, 1, 1], [1, 2, 2], [1, 3, 3], [2, 1, 3], [3, 1, 2], [3, 3, 3]]);
+  assert.deepEqual(tooWide({ columns: 2, blocks: [{ id: 'a', span: 3 }, { id: 'b', span: 2 }], links: [] }).map((b) => b.id), ['a']);
+  const shapes = blockFromMermaid('block-beta\n  a["rect"] b("round") c(["pill"]) d[["sub"]] e[("db")] f(("circle")) g>"flag"] h{"dia"} i{{"hex"}} j[/"para"/] k[\\"back"\\] l[/"trap"\\] m[\\"itrap"/] n((("dbl")))');
+  assert.equal(shapes.ok, true, shapes.reason);
+  assert.deepEqual(shapes.diagram.blocks.map((b) => b.shape), ['rect', 'round', 'stadium', 'subroutine', 'cylinder', 'circle', 'asymmetric', 'diamond', 'hexagon', 'parallelogram', 'parallelogramAlt', 'trapezoid', 'trapezoidAlt', 'doubleCircle']);
+  assert.equal(blockFromMermaid('block-beta\n  columns auto\n  a b').diagram.columns, 0);
+  assert.equal(blockFromMermaid('block-beta\n  block:g\n    columns 1\n    x y\n  end\n  z').ok, false);
+  assert.equal(blockFromMermaid('block-beta\n  a b\n  style a fill:#f00').ok, false);
+  assert.equal(blockFromMermaid('block-beta\n  a b c d e\n  a -.-> b').ok, false);
+  assert.equal(blockFromMermaid('block-beta\n  a<[\"Label\"]>(right)').ok, false);
+  assert.equal(blockFromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(blockFromMermaid(TEMPLATES.find((x) => x.id === 'block').source).ok);
+  assert.equal(blockToMermaid({ columns: 0, blocks: [], links: [] }, { title: '', description: '' }), '');
 });

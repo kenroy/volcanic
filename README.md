@@ -97,6 +97,10 @@ Choose **Class diagram** in the diagram type menu. Each class is a card: give it
 
 Choose **Architecture diagram** in the diagram type menu. The first list holds the elements of your system: services, groups and junctions, each with an optional icon (server, database, disk, cloud or internet) and, if you like, the group it sits in. The second list holds the connections between services and junctions: pick both ends, the side each leaves from and arrives at (top, right, bottom or left), and whether the line has an arrowhead. Removing a group takes what was inside it out of the group but keeps it; removing an element removes its connections. The arrow buttons (or Alt with the up and down arrow keys) reorder either list. Diagrams with custom icons, group borders or labelled edges open in Code mode.
 
+### Block diagrams
+
+Choose **Block diagram** in the diagram type menu. Blocks fill a grid from left to right, starting a new row when the next one will not fit, and each row of the list says which row and columns the block lands in. Give each block a label, a shape and how many columns it spans, or add an empty space to leave a gap. The side panel sets how many columns go across. Links join one block to another, as an arrow or a plain line with an optional label. Removing a block removes its links, and the arrow buttons (or Alt with the up and down arrow keys) reorder blocks and links. Diagrams with nested blocks, block arrows, colours or styled lines open in Code mode.
+
 ### Packet diagrams
 
 Choose **Packet diagram** in the diagram type menu. Each row is a field: type its name and its width in bits, and the bits it covers (0–15, 16–31 and so on) work themselves out as fields run one after another from bit 0. **Add field** and **Add 1-bit flag** add to the end, the arrow buttons (or Alt with the up and down arrow keys) reorder fields and the ranges follow along. The side panel totals the bits and bytes. Diagrams whose fields leave gaps or do not start at bit 0 open in Code mode.
