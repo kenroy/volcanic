@@ -1,6 +1,6 @@
 import { App, Component, Editor, MarkdownPostProcessorContext, MarkdownRenderChild, MarkdownView, Menu, Modal, Notice, Plugin, PluginSettingTab, Setting, SettingGroup, TFile, setIcon } from 'obsidian';
 import * as obsidianModule from 'obsidian';
-import { mount, type Mounted } from 'pele';
+import { detectType, mount, type Mounted } from 'pele';
 import { DiagramEditor } from './editor';
 import { readFontSize, readTheme, readTitle, readTitleAlign, stripMeta, TEXT_SIZES } from './mermaid';
 import { DEFAULT_THEME_ID, THEMES, themeCss } from './themes';
@@ -487,14 +487,16 @@ export default class VolcanicPlugin extends Plugin {
 
   /**
    * Obsidian draws mermaid blocks itself and gives no way to change the text size. When a size is chosen, draw
-   * the diagram with Pele instead, in front of Obsidian's picture, which is hidden.
+   * the diagram with Pele instead, in front of Obsidian's picture, which is hidden. Sankey diagrams are drawn this
+   * way too: Pele only paints their links as gradients when it draws them itself, and Obsidian's picture has flat ones.
    */
   private useChosenSize(el: HTMLElement, ctx: MarkdownPostProcessorContext, source: string): void {
     const size = readFontSize(source) || this.settings.textSize;
+    const gradients = detectType(stripMeta(source).trim()) === 'sankey';
     const natives = Array.from(el.querySelectorAll<HTMLElement>('.mermaid'));
     if (!natives.length) return;
     let host = el.querySelector<HTMLElement>('.volcanic-native-host');
-    if (!size) {
+    if (!size && !gradients) {
       if (host) {
         host.remove();
         for (const native of natives) native.classList.remove('volcanic-hidden');
@@ -516,7 +518,7 @@ export default class VolcanicPlugin extends Plugin {
     const text = stripMeta(source).trim();
     if (!text) return;
     try {
-      const mounted = mount(host, text, { zoom: false, fontSize: size });
+      const mounted = mount(host, text, { zoom: false, ...(size ? { fontSize: size } : {}) });
       ctx.addChild(new PeleBlock(el, mounted));
     } catch {
       // If Pele cannot draw it, Obsidian's own picture comes back.
@@ -800,6 +802,36 @@ export default class VolcanicPlugin extends Plugin {
     };
   }
 
+  /**
+   * Obsidian redraws the note when a diagram is saved, and the page can jump while it does. Remember where the diagram
+   * sits in its scrolling pane and, once the note has changed, put it back there. Scrolling by hand stops this at once.
+   */
+  private keepPlace(el: HTMLElement): () => void {
+    const scroller = el.closest<HTMLElement>('.cm-scroller, .markdown-preview-view');
+    if (!scroller) return () => undefined;
+    const box = scroller.getBoundingClientRect();
+    const offset = el.getBoundingClientRect().top - box.top;
+    // The diagram's top stays where it was, unless it was scrolled out of sight (the editor is taller than the picture).
+    const target = Math.min(Math.max(offset, 24), box.height / 2);
+    const want = scroller.scrollTop + offset - target;
+    return () => {
+      let stopped = false;
+      const stop = (): void => {
+        stopped = true;
+      };
+      const events = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
+      for (const type of events) scroller.addEventListener(type, stop, { passive: true });
+      const apply = (): void => {
+        if (!stopped && Math.abs(scroller.scrollTop - want) > 1) scroller.scrollTop = want;
+      };
+      apply();
+      for (const delay of [30, 120, 300, 600, 1000, 1600]) window.setTimeout(apply, delay);
+      window.setTimeout(() => {
+        for (const type of events) scroller.removeEventListener(type, stop);
+      }, 1700);
+    };
+  }
+
   /** Replace the drawn diagram with the editor, right where it sits in the note. */
   private editInline(el: HTMLElement, ctx: MarkdownPostProcessorContext, isNew = false, code = false): void {
     if (el.querySelector('.volcanic-inline-host')) return;
@@ -845,8 +877,10 @@ export default class VolcanicPlugin extends Plugin {
         defaultTheme: this.settings.defaultTheme,
         defaultFontSize: this.settings.textSize,
         onSubmit: (source) => {
+          const keep = this.keepPlace(el);
           close();
           handle.write(source);
+          keep();
           // Draw with the text just saved, now and again shortly, in case Obsidian redraws before the note updates.
           this.justSaved.set(el, { text: source, at: Date.now() });
           const redraw = (): void => this.redraws.get(el)?.();
