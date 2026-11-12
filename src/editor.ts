@@ -20,6 +20,8 @@ import { XyChartEditor } from './xychartEditor';
 import { KanbanEditor } from './kanbanEditor';
 import { SankeyEditor } from './sankeyEditor';
 import { TreemapEditor } from './treemapEditor';
+import { PacketEditor } from './packetEditor';
+import { packetFromMermaid, starterPacket, type Packet } from './packet';
 import { treemapFromMermaid, starterTreemap, type Treemap } from './treemap';
 import { sankeyFromMermaid, starterSankey, type Sankey } from './sankey';
 import { kanbanFromMermaid, starterKanban, type Kanban } from './kanban';
@@ -94,6 +96,7 @@ type Loaded =
   | ({ ok: true; kind: 'kanban'; kanban: Kanban } & Meta)
   | ({ ok: true; kind: 'sankey'; sankey: Sankey } & Meta)
   | ({ ok: true; kind: 'treemap'; treemap: Treemap } & Meta)
+  | ({ ok: true; kind: 'packet'; packet: Packet } & Meta)
   | { ok: false; reason: string };
 
 const KINDS: { id: Kind; name: string }[] = [
@@ -110,6 +113,7 @@ const KINDS: { id: Kind; name: string }[] = [
   { id: 'kanban', name: 'Kanban board' },
   { id: 'sankey', name: 'Sankey diagram' },
   { id: 'treemap', name: 'Treemap' },
+  { id: 'packet', name: 'Packet diagram' },
 ];
 type Mode = 'visual' | 'code';
 
@@ -263,6 +267,10 @@ export class DiagramEditor {
       const result = pieFromMermaid(text);
       return result.ok ? { ...result, kind: 'pie' } : result;
     }
+    if (type === 'packet') {
+      const result = packetFromMermaid(text);
+      return result.ok ? { ...result, kind: 'packet' } : result;
+    }
     if (type === 'treemap') {
       const result = treemapFromMermaid(text);
       return result.ok ? { ...result, kind: 'treemap' } : result;
@@ -330,6 +338,7 @@ export class DiagramEditor {
     else if (kind === 'gantt') this.kindEditor = new GanttEditor(this.kindApi(), from?.kind === 'gantt' ? from.diagram : starterGantt(), !from);
     else if (kind === 'journey') this.kindEditor = new JourneyEditor(this.kindApi(), from?.kind === 'journey' ? from.journey : starterJourney(), !from);
     else if (kind === 'pie') this.kindEditor = new PieEditor(this.kindApi(), from?.kind === 'pie' ? from.pie : starterPie(), !from);
+    else if (kind === 'packet') this.kindEditor = new PacketEditor(this.kindApi(), from?.kind === 'packet' ? from.packet : starterPacket(), !from);
     else if (kind === 'treemap') this.kindEditor = new TreemapEditor(this.kindApi(), from?.kind === 'treemap' ? from.treemap : starterTreemap(), !from);
     else if (kind === 'sankey') this.kindEditor = new SankeyEditor(this.kindApi(), from?.kind === 'sankey' ? from.sankey : starterSankey(), !from);
     else if (kind === 'kanban') this.kindEditor = new KanbanEditor(this.kindApi(), from?.kind === 'kanban' ? from.kanban : starterKanban(), !from);

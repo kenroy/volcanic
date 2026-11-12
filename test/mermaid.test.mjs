@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -756,4 +756,33 @@ test('treemaps round trip, keep names safe, add up their contents and re-nest', 
   assert.equal(treemapFromMermaid('pie\n  "A" : 3').ok, false);
   assert.ok(treemapFromMermaid(TEMPLATES.find((x) => x.id === 'treemap').source).ok);
   assert.equal(treemapToMermaid({ roots: [] }, { title: '', description: '' }), '');
+});
+
+test('packet diagrams round trip, work out the bits each field covers, and refuse what they cannot hold', () => {
+  const p = starterPacket();
+  p.fields[0].label = 'Say "hi"';
+  p.fields.push({ id: 'x', label: 'Flag', bits: 1 });
+  const text = packetToMermaid(p, { title: 'TCP', description: 'First fields' });
+  assert.match(text, /^---\ntitle: "TCP"\n---\npacket-beta/);
+  assert.match(text, /    0-15: "Say 'hi'"/);
+  assert.match(text, /    96: "Flag"/);
+  const back = packetFromMermaid(text);
+  assert.equal(back.ok, true);
+  assert.equal(back.title, 'TCP');
+  assert.equal(back.description, 'First fields');
+  assert.deepEqual(back.packet.fields.map((f) => [f.label, f.bits]), [["Say 'hi'", 16], ['Destination port', 16], ['Sequence number', 32], ['Acknowledgment number', 32], ['Flag', 1]]);
+  assert.deepEqual(placeFields(back.packet).map((f) => [f.start, f.end]), [[0, 15], [16, 31], [32, 63], [64, 95], [96, 96]]);
+  assert.equal(totalBits(back.packet), 97);
+  // Moving a field along shifts the bits of those it passes.
+  const moved = JSON.parse(JSON.stringify(back.packet));
+  moved.fields.unshift(moved.fields.pop());
+  assert.deepEqual(placeFields(moved).slice(0, 2).map((f) => [f.start, f.end]), [[0, 0], [1, 16]]);
+  const relative = packetFromMermaid('packet-beta\n  +8: "A"\n  +8: "B"');
+  assert.equal(relative.ok, true);
+  assert.deepEqual(relative.packet.fields.map((f) => f.bits), [8, 8]);
+  assert.equal(packetFromMermaid('packet-beta\n  0-7: "A"\n  9-15: "gap"').ok, false);
+  assert.equal(packetFromMermaid('packet-beta\n  4-7: "starts late"').ok, false);
+  assert.equal(packetFromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(packetFromMermaid(TEMPLATES.find((x) => x.id === 'packet').source).ok);
+  assert.equal(packetToMermaid({ fields: [] }, { title: '', description: '' }), '');
 });

@@ -3622,3 +3622,41 @@ body.theme-dark {
     border-left-color: Highlight;
   }
 }
+
+/* Packet diagram editor (its row buttons reuse the radar editor's styles) */
+
+.volcanic-pk-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: var(--size-4-3);
+}
+
+.volcanic-pk-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+  max-width: 720px;
+}
+
+.volcanic-pk-row {
+  display: grid;
+  grid-template-columns: 64px minmax(120px, 1fr) 84px 90px 32px;
+  gap: var(--size-4-2);
+  align-items: center;
+}
+
+.volcanic-pk-head {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.volcanic-pk-row .volcanic-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.volcanic-pk-range {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}

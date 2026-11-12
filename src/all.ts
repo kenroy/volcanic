@@ -16,3 +16,4 @@ export * from './xychart';
 export * from './kanban';
 export * from './sankey';
 export * from './treemap';
+export * from './packet';
