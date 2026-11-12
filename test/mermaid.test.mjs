@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -705,4 +705,28 @@ test('kanban boards round trip, keep card text safe, and move cards between colu
   assert.deepEqual(moving.columns.map((c) => c.cards.length), [1, 2, 1, 0]);
   assert.equal(moving.columns[1].cards[0].id, id);
   assert.equal(kanbanToMermaid({ columns: [] }, { title: '', description: '' }), '');
+});
+
+test('Sankey diagrams round trip, keep commas and quotes safe, and spot loops', () => {
+  const k = starterSankey();
+  k.flows[0].target = 'Home, sweet "home"';
+  k.flows[2].source = 'Home, sweet "home"';
+  k.flows.push({ id: 'x', source: '', target: 'Lost', value: 3 });
+  const text = sankeyToMermaid(k, { title: 'Energy', description: 'Where it goes' });
+  assert.match(text, /^---\ntitle: "Energy"\n---\nsankey-beta\n/);
+  assert.doesNotMatch(text, /Lost/);
+  const back = sankeyFromMermaid(text);
+  assert.equal(back.ok, true);
+  assert.equal(back.title, 'Energy');
+  assert.equal(back.description, 'Where it goes');
+  assert.deepEqual(back.sankey.flows.map((f) => [f.source, f.target, f.value]), k.flows.slice(0, 6).map((f) => [f.source, f.target, f.value]));
+  const energy = totalsOf(back.sankey).find((n) => n.name === 'Energy');
+  assert.deepEqual([energy.into, energy.out], [0, 100]);
+  assert.deepEqual(loopsIn(k), []);
+  assert.deepEqual(loopsIn({ flows: [{ id: 'a', source: 'A', target: 'B', value: 1 }, { id: 'b', source: 'B', target: 'A', value: 1 }] }).sort(), ['A']);
+  assert.equal(sankeyFromMermaid('sankey-beta\nA,B').ok, false);
+  assert.equal(sankeyFromMermaid('sankey-beta\nA,B,-1').ok, false);
+  assert.equal(sankeyFromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(sankeyFromMermaid(TEMPLATES.find((x) => x.id === 'sankey').source).ok);
+  assert.equal(sankeyToMermaid({ flows: [] }, { title: '', description: '' }), '');
 });

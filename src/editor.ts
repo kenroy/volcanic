@@ -18,6 +18,8 @@ import { QuadrantEditor } from './quadrantEditor';
 import { TimelineEditor } from './timelineEditor';
 import { XyChartEditor } from './xychartEditor';
 import { KanbanEditor } from './kanbanEditor';
+import { SankeyEditor } from './sankeyEditor';
+import { sankeyFromMermaid, starterSankey, type Sankey } from './sankey';
 import { kanbanFromMermaid, starterKanban, type Kanban } from './kanban';
 import { xyChartFromMermaid, starterXyChart, type XyChart } from './xychart';
 import { timelineFromMermaid, starterTimeline, type Timeline } from './timeline';
@@ -88,6 +90,7 @@ type Loaded =
   | ({ ok: true; kind: 'timeline'; timeline: Timeline } & Meta)
   | ({ ok: true; kind: 'xychart'; chart: XyChart } & Meta)
   | ({ ok: true; kind: 'kanban'; kanban: Kanban } & Meta)
+  | ({ ok: true; kind: 'sankey'; sankey: Sankey } & Meta)
   | { ok: false; reason: string };
 
 const KINDS: { id: Kind; name: string }[] = [
@@ -102,6 +105,7 @@ const KINDS: { id: Kind; name: string }[] = [
   { id: 'timeline', name: 'Timeline' },
   { id: 'xychart', name: 'XY chart' },
   { id: 'kanban', name: 'Kanban board' },
+  { id: 'sankey', name: 'Sankey diagram' },
 ];
 type Mode = 'visual' | 'code';
 
@@ -255,6 +259,10 @@ export class DiagramEditor {
       const result = pieFromMermaid(text);
       return result.ok ? { ...result, kind: 'pie' } : result;
     }
+    if (type === 'sankey') {
+      const result = sankeyFromMermaid(text);
+      return result.ok ? { ...result, kind: 'sankey' } : result;
+    }
     if (type === 'kanban') {
       const result = kanbanFromMermaid(text);
       return result.ok ? { ...result, kind: 'kanban' } : result;
@@ -314,6 +322,7 @@ export class DiagramEditor {
     else if (kind === 'gantt') this.kindEditor = new GanttEditor(this.kindApi(), from?.kind === 'gantt' ? from.diagram : starterGantt(), !from);
     else if (kind === 'journey') this.kindEditor = new JourneyEditor(this.kindApi(), from?.kind === 'journey' ? from.journey : starterJourney(), !from);
     else if (kind === 'pie') this.kindEditor = new PieEditor(this.kindApi(), from?.kind === 'pie' ? from.pie : starterPie(), !from);
+    else if (kind === 'sankey') this.kindEditor = new SankeyEditor(this.kindApi(), from?.kind === 'sankey' ? from.sankey : starterSankey(), !from);
     else if (kind === 'kanban') this.kindEditor = new KanbanEditor(this.kindApi(), from?.kind === 'kanban' ? from.kanban : starterKanban(), !from);
     else if (kind === 'xychart') this.kindEditor = new XyChartEditor(this.kindApi(), from?.kind === 'xychart' ? from.chart : starterXyChart(), !from);
     else if (kind === 'timeline') this.kindEditor = new TimelineEditor(this.kindApi(), from?.kind === 'timeline' ? from.timeline : starterTimeline(), !from);

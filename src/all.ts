@@ -14,3 +14,4 @@ export * from './quadrant';
 export * from './timeline';
 export * from './xychart';
 export * from './kanban';
+export * from './sankey';

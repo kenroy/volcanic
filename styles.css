@@ -3496,3 +3496,54 @@ body.theme-dark {
     background: Highlight;
   }
 }
+
+/* Sankey diagram editor (its row buttons and warning reuse the radar editor's styles) */
+
+.volcanic-sankey-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: var(--size-4-3);
+}
+
+.volcanic-sankey-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+  max-width: 720px;
+}
+
+.volcanic-sankey-row {
+  display: grid;
+  grid-template-columns: 64px minmax(90px, 1fr) minmax(90px, 1fr) 84px 32px;
+  gap: var(--size-4-2);
+  align-items: center;
+}
+
+.volcanic-sankey-head {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.volcanic-sankey-row .volcanic-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.volcanic-sankey-totals {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-sankey-totals th,
+.volcanic-sankey-totals td {
+  text-align: left;
+  padding: 2px var(--size-4-2) 2px 0;
+  font-weight: var(--font-normal);
+  font-variant-numeric: tabular-nums;
+}
+
+.volcanic-sankey-totals thead th {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}

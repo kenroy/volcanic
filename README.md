@@ -70,6 +70,11 @@ Choose **XY chart** in the diagram type menu. The editor is a grid: each row is 
 
 Choose **Kanban board** in the diagram type menu. A board is columns of cards. Drag a card by its grip to reorder it or move it to another column (Escape cancels a drag), or hold Alt with the arrow keys in a card's field: up and down within the column, left and right into the next one. **Details** on a card opens its owner, ticket reference and priority. **Add card** sits under each column, **Add column** is in the toolbar, and the arrow buttons reorder columns. A board description is kept in Volcanic's comment, because Mermaid's kanban has no description line. Cards with other details (icons, for example) open in Code mode.
 
+
+### Sankey diagrams
+
+Choose **Sankey diagram** in the diagram type menu. Each row is a flow: where it comes from, where it goes and how much. Names you have already used are offered as you type, and **Add flow** starts the next flow from where the last one ended. The side panel lists every place with what goes in and out of it, and warns if flows loop back on themselves, which a Sankey diagram cannot draw. The arrow buttons (or Alt with the up and down arrow keys) reorder flows. A description is kept in Volcanic's comment, because Mermaid's Sankey has no description line. Negative amounts and unusual lines open in Code mode.
+
 ### Mind maps
 
 Choose **Mind map** in the diagram type menu. The central idea sits in the middle with its first branches to the right and the rest to the left, laid out the way Pele draws it, and every idea can be moved in three ways:
