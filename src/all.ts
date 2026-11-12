@@ -19,3 +19,4 @@ export * from './treemap';
 export * from './packet';
 export * from './state';
 export * from './er';
+export * from './classDiagram';

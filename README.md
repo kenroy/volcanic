@@ -89,6 +89,10 @@ Choose **State diagram** in the diagram type menu. The first list holds your sta
 
 Choose **Entity relationship diagram** in the diagram type menu. Each entity is a card: give it a name, then add attributes with a type, a name, an optional key (primary, foreign or unique) and an optional comment. Relationships read as a sentence, such as one CUSTOMER places zero or more ORDER: pick the two entities, how many of each take part, and a label. The tick box on a relationship chooses a solid line (identifying) or a dotted one. Removing an entity removes its relationships, and the arrow buttons (or Alt with the up and down arrow keys) reorder entities, attributes and relationships. Diagrams with aliases, several keys on one attribute or styling open in Code mode.
 
+### Class diagrams
+
+Choose **Class diagram** in the diagram type menu. Each class is a card: give it a name, choose whether it is a class, interface, abstract class, enumeration or service, and add its attributes and methods one per row (such as `String name` or `speak() void`) with a visibility mark. Relationships read as a sentence, such as Dog inherits from Animal: pick the two classes and how they relate (inherits from, implements, is made of, has a shared, uses, depends on or is linked to), with an optional label and a count at each end such as 1 or 0..*. Removing a class removes its relationships, and the arrow buttons (or Alt with the up and down arrow keys) reorder classes, members and relationships. Diagrams with notes, namespaces, lollipop interfaces or styling open in Code mode.
+
 ### Packet diagrams
 
 Choose **Packet diagram** in the diagram type menu. Each row is a field: type its name and its width in bits, and the bits it covers (0–15, 16–31 and so on) work themselves out as fields run one after another from bit 0. **Add field** and **Add 1-bit flag** add to the end, the arrow buttons (or Alt with the up and down arrow keys) reorder fields and the ranges follow along. The side panel totals the bits and bytes. Diagrams whose fields leave gaps or do not start at bit 0 open in Code mode.

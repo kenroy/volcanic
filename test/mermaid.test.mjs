@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -864,4 +864,48 @@ test('entity relationship diagrams round trip, keep names safe, and refuse what 
   assert.equal(erFromMermaid('pie\n  "A" : 3').ok, false);
   assert.ok(erFromMermaid(TEMPLATES.find((x) => x.id === 'er').source).ok);
   assert.equal(erToMermaid({ entities: [], relationships: [], direction: 'TB' }, { title: '', description: '' }), '');
+});
+
+test('class diagrams round trip, keep each relationship pointing the right way, and refuse what they cannot hold', () => {
+  const d = starterClasses();
+  d.direction = 'LR';
+  d.classes[0].stereotype = 'interface';
+  d.classes[1].name = 'Guide dog';
+  d.classes[1].members[0].text = 'fetch(int times): bool; ok';
+  d.classes.push({ id: 'c9', name: 'Owner', stereotype: '', members: [] });
+  d.relations.push({ id: 'r9', from: 'c9', to: 'c1', kind: 'aggregates', label: 'has', fromCount: '1', toCount: '0..*' });
+  d.relations.push({ id: 'r10', from: 'c2', to: 'c9', kind: 'uses', label: '', fromCount: '', toCount: '1' });
+  const text = classToMermaid(d, { title: 'Pets', description: 'Animals' });
+  assert.match(text, /^---\ntitle: "Pets"\n---\nclassDiagram/);
+  assert.match(text, /    direction LR/);
+  assert.match(text, /    class C1\["Guide dog"\] \{/);
+  assert.match(text, /        <<interface>>/);
+  assert.match(text, /    Animal <\|-- C1/);
+  assert.match(text, /    Owner "1" o-- "0\.\.\*" Animal : has/);
+  assert.match(text, /    C1 --> "1" Owner/);
+  const back = classFromMermaid(text);
+  assert.equal(back.ok, true, back.reason);
+  assert.equal(back.title, 'Pets');
+  assert.equal(back.diagram.direction, 'LR');
+  assert.deepEqual(back.diagram.classes.map((c) => [c.name, c.stereotype]), [['Animal', 'interface'], ['Guide dog', ''], ['Cat', ''], ['Owner', '']]);
+  assert.equal(back.diagram.classes[1].members[0].text, 'fetch(int times): bool; ok');
+  const name = (id) => back.diagram.classes.find((c) => c.id === id).name;
+  assert.deepEqual(back.diagram.relations.map((r) => [name(r.from), r.kind, name(r.to), r.label, r.fromCount, r.toCount]), [['Guide dog', 'inherits', 'Animal', '', '', ''], ['Cat', 'inherits', 'Animal', '', '', ''], ['Owner', 'aggregates', 'Animal', 'has', '1', '0..*'], ['Guide dog', 'uses', 'Owner', '', '', '1']]);
+  assert.equal(classToMermaid(back.diagram, { title: 'Pets', description: 'Animals' }), text);
+  const reversed = classFromMermaid('classDiagram\n  Dog --|> Animal\n  Wheel --* Car\n  Car ..|> Drivable : x\n  A "1" <-- "n" B');
+  assert.equal(reversed.ok, true, reversed.reason);
+  const n2 = (id) => reversed.diagram.classes.find((c) => c.id === id).name;
+  assert.deepEqual(reversed.diagram.relations.map((r) => [n2(r.from), r.kind, n2(r.to), r.fromCount, r.toCount]), [['Dog', 'inherits', 'Animal', '', ''], ['Car', 'composes', 'Wheel', '', ''], ['Car', 'implements', 'Drivable', '', ''], ['B', 'uses', 'A', 'n', '1']]);
+  const inline = classFromMermaid('classDiagram\n  class A\n  A : +int x\n  A : +foo() int\n  <<abstract>> A');
+  assert.equal(inline.ok, true);
+  assert.deepEqual(inline.diagram.classes[0].members.map((m) => [m.visibility, m.text]), [['+', 'int x'], ['+', 'foo() int']]);
+  assert.equal(inline.diagram.classes[0].stereotype, 'abstract');
+  assert.equal(classFromMermaid('classDiagram\n  A --> B\n  note for A "hi"').ok, false);
+  assert.equal(classFromMermaid('classDiagram\n  namespace N {\n    class A\n  }').ok, false);
+  assert.equal(classFromMermaid('classDiagram\n  A <|--|> B').ok, false);
+  assert.equal(classFromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(classFromMermaid(TEMPLATES.find((x) => x.id === 'class').source).ok);
+  assert.equal(classToMermaid({ classes: [], relations: [], direction: 'TB' }, { title: '', description: '' }), '');
+  assert.deepEqual(unrelated({ classes: [{ id: 'a', name: 'A', stereotype: '', members: [] }, { id: 'b', name: 'B', stereotype: '', members: [] }], relations: [], direction: 'TB' }).length, 2);
+  assert.deepEqual(duplicateClasses({ classes: [{ id: 'a', name: 'X' }, { id: 'b', name: ' x ' }], relations: [], direction: 'TB' }), ['x']);
 });
