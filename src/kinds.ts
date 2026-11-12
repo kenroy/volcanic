@@ -1,7 +1,7 @@
 import { FRONT_MATTER, readMetaDescription } from './mermaid';
 
 /** Diagram types that have a visual editor. Everything else is edited as text. */
-export type Kind = 'flowchart' | 'sequence' | 'gantt' | 'mindmap' | 'journey' | 'pie' | 'radar' | 'quadrant' | 'timeline' | 'xychart' | 'kanban' | 'sankey' | 'treemap' | 'packet' | 'state' | 'er' | 'class' | 'architecture' | 'block' | 'git' | 'requirement';
+export type Kind = 'flowchart' | 'sequence' | 'gantt' | 'mindmap' | 'journey' | 'pie' | 'radar' | 'quadrant' | 'timeline' | 'xychart' | 'kanban' | 'sankey' | 'treemap' | 'packet' | 'state' | 'er' | 'class' | 'architecture' | 'block' | 'git' | 'requirement' | 'c4';
 
 export interface KindMeta {
   title: string;

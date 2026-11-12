@@ -24,3 +24,4 @@ export * from './architecture';
 export * from './block';
 export * from './gitGraph';
 export * from './requirement';
+export * from './c4';

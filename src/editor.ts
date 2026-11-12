@@ -28,7 +28,9 @@ import { ArchitectureEditor } from './architectureEditor';
 import { BlockEditor } from './blockEditor';
 import { GitEditor } from './gitEditor';
 import { RequirementEditor } from './requirementEditor';
+import { C4Editor } from './c4Editor';
 import { packetFromMermaid, starterPacket, type Packet } from './packet';
+import { c4FromMermaid, starterC4, type C4Diagram } from './c4';
 import { requirementFromMermaid, starterRequirements, type RequirementDiagram } from './requirement';
 import { gitFromMermaid, starterGit, type GitGraph } from './gitGraph';
 import { blockFromMermaid, starterBlocks, type BlockDiagram } from './block';
@@ -118,6 +120,7 @@ type Loaded =
   | ({ ok: true; kind: 'block'; block: BlockDiagram } & Meta)
   | ({ ok: true; kind: 'git'; git: GitGraph } & Meta)
   | ({ ok: true; kind: 'requirement'; requirement: RequirementDiagram } & Meta)
+  | ({ ok: true; kind: 'c4'; c4: C4Diagram } & Meta)
   | { ok: false; reason: string };
 
 const KINDS: { id: Kind; name: string }[] = [
@@ -142,6 +145,7 @@ const KINDS: { id: Kind; name: string }[] = [
   { id: 'block', name: 'Block diagram' },
   { id: 'git', name: 'Git graph' },
   { id: 'requirement', name: 'Requirement diagram' },
+  { id: 'c4', name: 'C4 context diagram' },
 ];
 type Mode = 'visual' | 'code';
 
@@ -295,6 +299,10 @@ export class DiagramEditor {
       const result = pieFromMermaid(text);
       return result.ok ? { ...result, kind: 'pie' } : result;
     }
+    if (type === 'c4') {
+      const result = c4FromMermaid(text);
+      return result.ok ? { ...result, kind: 'c4', c4: result.diagram } : result;
+    }
     if (type === 'requirement') {
       const result = requirementFromMermaid(text);
       return result.ok ? { ...result, kind: 'requirement', requirement: result.diagram } : result;
@@ -394,6 +402,7 @@ export class DiagramEditor {
     else if (kind === 'gantt') this.kindEditor = new GanttEditor(this.kindApi(), from?.kind === 'gantt' ? from.diagram : starterGantt(), !from);
     else if (kind === 'journey') this.kindEditor = new JourneyEditor(this.kindApi(), from?.kind === 'journey' ? from.journey : starterJourney(), !from);
     else if (kind === 'pie') this.kindEditor = new PieEditor(this.kindApi(), from?.kind === 'pie' ? from.pie : starterPie(), !from);
+    else if (kind === 'c4') this.kindEditor = new C4Editor(this.kindApi(), from?.kind === 'c4' ? from.c4 : starterC4(), !from);
     else if (kind === 'requirement') this.kindEditor = new RequirementEditor(this.kindApi(), from?.kind === 'requirement' ? from.requirement : starterRequirements(), !from);
     else if (kind === 'git') this.kindEditor = new GitEditor(this.kindApi(), from?.kind === 'git' ? from.git : starterGit(), !from);
     else if (kind === 'block') this.kindEditor = new BlockEditor(this.kindApi(), from?.kind === 'block' ? from.block : starterBlocks(), !from);
@@ -2062,6 +2071,8 @@ export class DiagramEditor {
       return;
     }
     let failure: unknown = null;
+    // Pele will not draw into a hidden element, so after a failed draw the next one would never happen. Show it first.
+    this.previewHost.hidden = false;
     const align = this.titleAlignSelect.value as TitleAlign;
     const options = {
       zoom: false as const,

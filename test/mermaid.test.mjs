@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses, architectureToMermaid, architectureFromMermaid, starterArchitecture, unconnectedElements, blockToMermaid, blockFromMermaid, starterBlocks, placeBlocks, tooWide, gitToMermaid, gitFromMermaid, starterGit, branchNames, branchAfter, gitProblem, blankStep, requirementToMermaid, requirementFromMermaid, starterRequirements, untraced, duplicateItems, blankItem } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses, architectureToMermaid, architectureFromMermaid, starterArchitecture, unconnectedElements, blockToMermaid, blockFromMermaid, starterBlocks, placeBlocks, tooWide, gitToMermaid, gitFromMermaid, starterGit, branchNames, branchAfter, gitProblem, blankStep, requirementToMermaid, requirementFromMermaid, starterRequirements, untraced, duplicateItems, blankItem, c4ToMermaid, c4FromMermaid, starterC4 } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -1064,4 +1064,47 @@ test('requirement diagrams round trip, keep text safe, and refuse what they cann
   assert.equal(requirementFromMermaid('pie\n  "A" : 3').ok, false);
   assert.ok(requirementFromMermaid(TEMPLATES.find((x) => x.id === 'requirement').source).ok);
   assert.equal(requirementToMermaid({ items: [], relations: [], direction: 'TB' }, { title: '', description: '' }), '');
+});
+
+test('C4 context diagrams round trip, keep boundaries around what is in them, and refuse what they cannot hold', () => {
+  const d = starterC4();
+  d.elements[0].label = 'Customer "VIP"';
+  d.elements[0].description = 'Buys things; often';
+  d.elements.push({ id: 'e9', kind: 'SystemDb', label: 'Account store', description: '', boundary: 'b1', code: '' });
+  d.elements.push({ id: 'e10', kind: 'SystemQueue_Ext', label: 'Events', description: 'Async', boundary: '', code: '' });
+  d.relations.push({ id: 'r9', from: 'e2', to: 'e9', line: 'Rel_D', label: 'Reads and writes', technology: '' });
+  d.relations.push({ id: 'r10', from: 'e10', to: 'e2', line: 'BiRel', label: 'Syncs', technology: 'AMQP' });
+  const text = c4ToMermaid(d, { title: 'Bank', description: 'Context' });
+  assert.match(text, /^---\ntitle: "Bank"\n---\nC4Context\n    accTitle: Bank/);
+  assert.match(text, /    Person\(user, "Customer #quot;VIP#quot;", "Buys things#59; often"\)/);
+  assert.match(text, /    System_Ext\(mail, "Email", "Sends messages"\)/);
+  assert.match(text, /    Enterprise_Boundary\(company, "Our company"\) \{\n        System\(app, "Web app", "Does the work"\)\n        SystemDb\(account_store, "Account store"\)\n    \}/);
+  assert.match(text, /    Rel\(user, app, "Uses"\)/);
+  assert.match(text, /    Rel\(app, mail, "Sends email", "SMTP"\)/);
+  assert.match(text, /    Rel_D\(app, account_store, "Reads and writes"\)/);
+  assert.match(text, /    BiRel\(events, app, "Syncs", "AMQP"\)/);
+  const back = c4FromMermaid(text);
+  assert.equal(back.ok, true, back.reason);
+  assert.equal(back.title, 'Bank');
+  assert.deepEqual(back.diagram.elements.map((e) => [e.kind, e.label]), [['Person', 'Customer "VIP"'], ['System_Ext', 'Email'], ['SystemQueue_Ext', 'Events'], ['System', 'Web app'], ['SystemDb', 'Account store']]);
+  assert.equal(back.diagram.elements[0].description, 'Buys things; often');
+  const inside = back.diagram.elements.filter((e) => e.boundary).map((e) => e.label);
+  assert.deepEqual(inside, ['Web app', 'Account store']);
+  assert.deepEqual(back.diagram.relations.map((r) => [r.line, r.label, r.technology]), [['Rel', 'Uses', ''], ['Rel', 'Sends email', 'SMTP'], ['Rel_D', 'Reads and writes', ''], ['BiRel', 'Syncs', 'AMQP']]);
+  assert.equal(c4ToMermaid(back.diagram, { title: 'Bank', description: 'Context' }), text);
+  // A relationship may come before what it joins is declared.
+  const late = c4FromMermaid('C4Context\n  Rel(a, b, "x")\n  Person(a, "A")\n  System(b, "B")');
+  assert.equal(late.ok, true, late.reason);
+  assert.equal(late.diagram.relations.length, 1);
+  assert.equal(c4FromMermaid('C4Context\n  Person(a, "A", "d", $sprite="x")').ok, false);
+  assert.equal(c4FromMermaid('C4Context\n  Person(a, "A")\n  UpdateElementStyle(a, $bgColor="red")').ok, false);
+  assert.equal(c4FromMermaid('C4Context\n  Enterprise_Boundary(b0, "B") {\n    System_Boundary(b1, "C") {\n      System(s, "S")\n    }\n  }').ok, false);
+  assert.equal(c4FromMermaid('C4Container\n  Person(a, "A")').ok, false);
+  assert.equal(c4FromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(c4FromMermaid(TEMPLATES.find((x) => x.id === 'c4').source).ok);
+  const emptyBoundary = { elements: [{ id: 'e1', kind: 'Person', label: 'A', description: '', boundary: '', code: 'a' }], boundaries: [{ id: 'b1', kind: 'System_Boundary', label: 'Empty', code: 'empty' }], relations: [] };
+  const emptyText = c4ToMermaid(emptyBoundary, { title: '', description: '' });
+  assert.doesNotMatch(emptyText, /Boundary/);
+  assert.equal(c4FromMermaid(emptyText).ok, true);
+  assert.equal(c4ToMermaid({ elements: [], boundaries: [], relations: [] }, { title: '', description: '' }), '');
 });
