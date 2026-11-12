@@ -81,6 +81,10 @@ Choose **Sankey diagram** in the diagram type menu. Each row is a flow: where it
 Choose **Treemap** in the diagram type menu. The editor is an outline: each row is a box, indented to show what it sits inside. A box with others inside it adds them up; a box with nothing inside it has a size you type. Press Enter in a name to add a box beside it, use the plus button to add one inside, and use Alt with the arrow keys (or the buttons) to move a box up and down, put it inside the box above, or take it out. Sizes of 0 are flagged because those boxes are too small to see. Negative sizes, styled boxes (`:::class`) and unusual lines open in Code mode.
 
 
+### State diagrams
+
+Choose **State diagram** in the diagram type menu. The first list holds your states; the second holds the transitions between them. Each transition is picked from the states you have named, plus **Start** (the black dot) and **End** (the ringed dot), and can carry a label for what triggers it. **Add state** and **Add transition** add to the end, the arrow buttons (or Alt with the up and down arrow keys) reorder either list, and removing a state removes its transitions. The side panel sets the direction and points out states with no transitions, nothing leading to them, or no way out. Diagrams with nested states, forks, choices, notes or styling open in Code mode.
+
 ### Packet diagrams
 
 Choose **Packet diagram** in the diagram type menu. Each row is a field: type its name and its width in bits, and the bits it covers (0–15, 16–31 and so on) work themselves out as fields run one after another from bit 0. **Add field** and **Add 1-bit flag** add to the end, the arrow buttons (or Alt with the up and down arrow keys) reorder fields and the ranges follow along. The side panel totals the bits and bytes. Diagrams whose fields leave gaps or do not start at bit 0 open in Code mode.

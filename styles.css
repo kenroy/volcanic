@@ -3660,3 +3660,72 @@ body.theme-dark {
   color: var(--text-muted);
   font-size: var(--font-ui-small);
 }
+
+/* State diagram editor (its row buttons and warning reuse the radar editor's styles) */
+
+.volcanic-st-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: var(--size-4-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.volcanic-st-scroll .volcanic-panel-title {
+  margin: var(--size-4-2) 0 0;
+}
+
+.volcanic-st-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+  max-width: 760px;
+}
+
+.volcanic-st-row {
+  display: grid;
+  gap: var(--size-4-2);
+  align-items: center;
+}
+
+.volcanic-st-state {
+  grid-template-columns: 64px minmax(120px, 1fr) 84px 32px;
+}
+
+.volcanic-st-trans {
+  grid-template-columns: 64px minmax(90px, 1fr) 16px minmax(90px, 1fr) minmax(90px, 1.2fr) 32px;
+}
+
+.volcanic-st-head {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.volcanic-st-arrow {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.volcanic-st-count {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.volcanic-st-row .volcanic-input,
+.volcanic-st-row .volcanic-select {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .volcanic-st-trans {
+    grid-template-columns: 64px minmax(0, 1fr) 16px minmax(0, 1fr) 32px;
+  }
+  .volcanic-st-trans > .volcanic-input {
+    grid-column: 2 / 5;
+  }
+  .volcanic-st-head {
+    display: none;
+  }
+}

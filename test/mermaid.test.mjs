@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -785,4 +785,46 @@ test('packet diagrams round trip, work out the bits each field covers, and refus
   assert.equal(packetFromMermaid('pie\n  "A" : 3').ok, false);
   assert.ok(packetFromMermaid(TEMPLATES.find((x) => x.id === 'packet').source).ok);
   assert.equal(packetToMermaid({ fields: [] }, { title: '', description: '' }), '');
+});
+
+test('state diagrams round trip, keep names safe, and refuse what they cannot hold', () => {
+  const d = starterState();
+  d.direction = 'LR';
+  d.states[1].name = 'Say "hi"';
+  d.states.push({ id: 's4', name: 'Waiting for input' }, { id: 's5', name: 'Lonely' }, { id: 's6', name: 'end' });
+  d.transitions.push({ id: 't7', from: 's4', to: 's6', label: 'a: b; c' });
+  const text = stateToMermaid(d, { title: 'Player', description: 'How it moves' });
+  assert.match(text, /^---\ntitle: "Player"\n---\nstateDiagram-v2/);
+  assert.match(text, /    direction LR/);
+  assert.match(text, /    state "Say 'hi'" as s1/);
+  assert.match(text, /    \[\*\] --> Idle/);
+  assert.match(text, /    Running --> \[\*\]: crash|    s1 --> \[\*\]: crash/);
+  assert.match(text, /\n    Lonely\n/);
+  const back = stateFromMermaid(text);
+  assert.equal(back.ok, true, back.reason);
+  assert.equal(back.title, 'Player');
+  assert.equal(back.description, 'How it moves');
+  assert.equal(back.diagram.direction, 'LR');
+  assert.deepEqual(back.diagram.states.map((s) => s.name), ["Idle", "Say 'hi'", 'Paused', 'Waiting for input', 'Lonely', 'end']);
+  const name = (id) => (id === START ? 'START' : id === END ? 'END' : back.diagram.states.find((s) => s.id === id).name);
+  assert.deepEqual(back.diagram.transitions.map((t) => [name(t.from), name(t.to), t.label]).slice(0, 2), [['START', 'Idle', ''], ['Idle', "Say 'hi'", 'start']]);
+  assert.equal(back.diagram.transitions.at(-1).label, 'a: b; c');
+  assert.equal(back.diagram.transitions.length, d.transitions.length);
+  // A second pass changes nothing.
+  assert.equal(stateToMermaid(back.diagram, { title: 'Player', description: 'How it moves' }), text);
+  const described = stateFromMermaid('stateDiagram-v2\n  state "Two words" as a\n  b : Described\n  [*] --> a\n  a --> b: go');
+  assert.equal(described.ok, true);
+  assert.deepEqual(described.diagram.states.map((s) => s.name), ['Two words', 'Described']);
+  assert.equal(stateFromMermaid('stateDiagram\n  A --> B').ok, true);
+  assert.equal(stateFromMermaid('stateDiagram-v2\n  state C {\n    [*] --> X\n  }').ok, false);
+  assert.equal(stateFromMermaid('stateDiagram-v2\n  state F <<fork>>\n  A --> F').ok, false);
+  assert.equal(stateFromMermaid('stateDiagram-v2\n  A --> B\n  note right of A : hi').ok, false);
+  assert.equal(stateFromMermaid('stateDiagram-v2\n  A: one\n  A: two').ok, false);
+  assert.equal(stateFromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(stateFromMermaid(TEMPLATES.find((x) => x.id === 'state').source).ok);
+  assert.equal(stateToMermaid({ states: [], transitions: [], direction: 'TB' }, { title: '', description: '' }), '');
+  // Notes about loose ends.
+  const l = loose(back.diagram);
+  assert.deepEqual(l.alone.map((s) => s.name), ['Lonely']);
+  assert.deepEqual(duplicateNames({ states: [{ id: 'a', name: 'X' }, { id: 'b', name: ' x ' }], transitions: [], direction: 'TB' }), [' x '.trim()]);
 });
