@@ -6,7 +6,7 @@ import { render } from 'pele';
 
 const bundle = await esbuild.build({ entryPoints: ['src/all.ts'], bundle: true, format: 'esm', write: false, platform: 'node' });
 const mod = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
-const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses } = mod;
+const { toMermaid, fromMermaid, stripMeta, readTitle, setTitle, readTitleAlign, setTitleAlign, TEMPLATES, seqToMermaid, seqFromMermaid, ganttToMermaid, ganttFromMermaid, resolveSpans, toDay, toIso, THEMES, contrast, readTheme, setTheme, holidaysBetween, countryOptions, regionOptions, readHolidayPlaces, setHolidayPlaces, holidaysForPlaces, groupByPlace, placeIndexes, autoLayout, estimateSize, readFontSize, setFontSize, TEXT_SIZES, mindToMermaid, mindFromMermaid, moveNode, findNode, parentOf, flatten, starterMindMap, countNodes, readDescription, journeyToMermaid, journeyFromMermaid, moveStep: moveJourneyStep, starterJourney, allSteps: allJourneySteps, actorsOf, pieToMermaid, pieFromMermaid, starterPie, percentOf, radarToMermaid, radarFromMermaid, starterRadar, quadrantToMermaid, quadrantFromMermaid, starterQuadrant, timelineToMermaid, timelineFromMermaid, starterTimeline, shiftPeriod, xyChartToMermaid, xyChartFromMermaid, starterXyChart, kanbanToMermaid, kanbanFromMermaid, starterKanban, moveCard: moveKanbanCard, sankeyToMermaid, sankeyFromMermaid, starterSankey, loopsIn, totalsOf, treemapToMermaid, treemapFromMermaid, starterTreemap, sizeOf, indentNode, outdentNode, shiftNode, flattenTree, packetToMermaid, packetFromMermaid, starterPacket, placeFields, totalBits, stateToMermaid, stateFromMermaid, starterState, START, END, loose, duplicateNames, erToMermaid, erFromMermaid, starterEr, unconnected, classToMermaid, classFromMermaid, starterClasses, unrelated, duplicateClasses, architectureToMermaid, architectureFromMermaid, starterArchitecture, unconnectedElements } = mod;
 
 const SHAPES = ['rect', 'rounded', 'stadium', 'diamond', 'circle', 'hexagon', 'parallelogram', 'cylinder', 'subroutine'];
 
@@ -908,4 +908,42 @@ test('class diagrams round trip, keep each relationship pointing the right way, 
   assert.equal(classToMermaid({ classes: [], relations: [], direction: 'TB' }, { title: '', description: '' }), '');
   assert.deepEqual(unrelated({ classes: [{ id: 'a', name: 'A', stereotype: '', members: [] }, { id: 'b', name: 'B', stereotype: '', members: [] }], relations: [], direction: 'TB' }).length, 2);
   assert.deepEqual(duplicateClasses({ classes: [{ id: 'a', name: 'X' }, { id: 'b', name: ' x ' }], relations: [], direction: 'TB' }), ['x']);
+});
+
+test('architecture diagrams round trip, keep what they were given, and refuse what they cannot hold', () => {
+  const a = starterArchitecture();
+  a.elements.push({ id: 'e9', kind: 'service', label: 'Message queue', icon: 'cloud', parent: 'e1', code: '' });
+  a.elements.push({ id: 'e10', kind: 'junction', label: '', icon: '', parent: 'e1', code: '' });
+  a.elements.push({ id: 'e11', kind: 'service', label: 'Browser [web]', icon: 'internet', parent: '', code: '' });
+  a.connections.push({ id: 'k9', from: 'e9', fromSide: 'R', to: 'e10', toSide: 'L', arrows: 'both' });
+  a.connections.push({ id: 'k10', from: 'e11', fromSide: 'B', to: 'e4', toSide: 'T', arrows: 'to' });
+  const text = architectureToMermaid(a, { title: 'Web', description: 'A system' });
+  assert.match(text, /^---\ntitle: "Web"\n---\narchitecture-beta/);
+  assert.match(text, /    group api\(cloud\)\[API\]/);
+  assert.match(text, /    service db\(database\)\[Database\] in api/);
+  assert.match(text, /    service message_queue\(cloud\)\[Message queue\] in api/);
+  assert.match(text, /    junction junction in api|    junction junction_2 in api/);
+  assert.match(text, /    service browser_web\(internet\)\[Browser \(web\)\]\n/);
+  assert.match(text, /    db:L -- R:server/);
+  assert.match(text, /    message_queue:R <--> L:/);
+  assert.match(text, /    browser_web:B --> T:server/);
+  const back = architectureFromMermaid(text);
+  assert.equal(back.ok, true, back.reason);
+  assert.equal(back.title, 'Web');
+  assert.deepEqual(back.architecture.elements.map((e) => [e.kind, e.label, e.icon]).slice(0, 5), [['group', 'API', 'cloud'], ['service', 'Database', 'database'], ['service', 'Disk', 'disk'], ['service', 'Server', 'server'], ['service', 'Message queue', 'cloud']]);
+  const byId = Object.fromEntries(back.architecture.elements.map((e) => [e.id, e]));
+  assert.equal(byId[back.architecture.elements[1].parent].label, 'API');
+  assert.deepEqual(back.architecture.connections.map((c) => c.arrows), ['line', 'line', 'both', 'to']);
+  assert.equal(architectureToMermaid(back.architecture, { title: 'Web', description: 'A system' }), text);
+  assert.deepEqual(unconnectedElements(starterArchitecture()), []);
+  // A service declared after the connection that uses it, and a group declared after what is inside it.
+  const late = architectureFromMermaid('architecture-beta\n  a:R -- L:b\n  service a(server)[A] in g\n  service b(disk)[B]\n  group g(cloud)[G]');
+  assert.equal(late.ok, true, late.reason);
+  assert.match(architectureToMermaid(late.architecture, { title: '', description: '' }), /group g\(cloud\)\[G\]\n    service a/);
+  assert.equal(architectureFromMermaid('architecture-beta\n  service a(logos:aws)[A]').ok, false);
+  assert.equal(architectureFromMermaid('architecture-beta\n  group g(cloud)[G]\n  service a(server)[A] in g\n  service b(disk)[B]\n  a{group}:R -- L:b{group}').ok, false);
+  assert.equal(architectureFromMermaid('architecture-beta\n  service a(server)[A]\n  service b(disk)[B]\n  a:R -- L:b : x').ok, false);
+  assert.equal(architectureFromMermaid('pie\n  "A" : 3').ok, false);
+  assert.ok(architectureFromMermaid(TEMPLATES.find((x) => x.id === 'architecture').source).ok);
+  assert.equal(architectureToMermaid({ elements: [], connections: [] }, { title: '', description: '' }), '');
 });

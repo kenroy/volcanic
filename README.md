@@ -93,6 +93,10 @@ Choose **Entity relationship diagram** in the diagram type menu. Each entity is 
 
 Choose **Class diagram** in the diagram type menu. Each class is a card: give it a name, choose whether it is a class, interface, abstract class, enumeration or service, and add its attributes and methods one per row (such as `String name` or `speak() void`) with a visibility mark. Relationships read as a sentence, such as Dog inherits from Animal: pick the two classes and how they relate (inherits from, implements, is made of, has a shared, uses, depends on or is linked to), with an optional label and a count at each end such as 1 or 0..*. Removing a class removes its relationships, and the arrow buttons (or Alt with the up and down arrow keys) reorder classes, members and relationships. Diagrams with notes, namespaces, lollipop interfaces or styling open in Code mode.
 
+### Architecture diagrams
+
+Choose **Architecture diagram** in the diagram type menu. The first list holds the elements of your system: services, groups and junctions, each with an optional icon (server, database, disk, cloud or internet) and, if you like, the group it sits in. The second list holds the connections between services and junctions: pick both ends, the side each leaves from and arrives at (top, right, bottom or left), and whether the line has an arrowhead. Removing a group takes what was inside it out of the group but keeps it; removing an element removes its connections. The arrow buttons (or Alt with the up and down arrow keys) reorder either list. Diagrams with custom icons, group borders or labelled edges open in Code mode.
+
 ### Packet diagrams
 
 Choose **Packet diagram** in the diagram type menu. Each row is a field: type its name and its width in bits, and the bits it covers (0–15, 16–31 and so on) work themselves out as fields run one after another from bit 0. **Add field** and **Add 1-bit flag** add to the end, the arrow buttons (or Alt with the up and down arrow keys) reorder fields and the ranges follow along. The side panel totals the bits and bytes. Diagrams whose fields leave gaps or do not start at bit 0 open in Code mode.

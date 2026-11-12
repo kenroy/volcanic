@@ -24,7 +24,9 @@ import { PacketEditor } from './packetEditor';
 import { StateEditor } from './stateEditor';
 import { ErEditor } from './erEditor';
 import { ClassEditor } from './classEditor';
+import { ArchitectureEditor } from './architectureEditor';
 import { packetFromMermaid, starterPacket, type Packet } from './packet';
+import { architectureFromMermaid, starterArchitecture, type Architecture } from './architecture';
 import { classFromMermaid, starterClasses, type ClassDiagram } from './classDiagram';
 import { erFromMermaid, starterEr, type ErDiagram } from './er';
 import { stateFromMermaid, starterState, type StateDiagram } from './state';
@@ -106,6 +108,7 @@ type Loaded =
   | ({ ok: true; kind: 'state'; state: StateDiagram } & Meta)
   | ({ ok: true; kind: 'er'; er: ErDiagram } & Meta)
   | ({ ok: true; kind: 'class'; classes: ClassDiagram } & Meta)
+  | ({ ok: true; kind: 'architecture'; architecture: Architecture } & Meta)
   | { ok: false; reason: string };
 
 const KINDS: { id: Kind; name: string }[] = [
@@ -126,6 +129,7 @@ const KINDS: { id: Kind; name: string }[] = [
   { id: 'state', name: 'State diagram' },
   { id: 'er', name: 'Entity relationship diagram' },
   { id: 'class', name: 'Class diagram' },
+  { id: 'architecture', name: 'Architecture diagram' },
 ];
 type Mode = 'visual' | 'code';
 
@@ -279,6 +283,10 @@ export class DiagramEditor {
       const result = pieFromMermaid(text);
       return result.ok ? { ...result, kind: 'pie' } : result;
     }
+    if (type === 'architecture') {
+      const result = architectureFromMermaid(text);
+      return result.ok ? { ...result, kind: 'architecture' } : result;
+    }
     if (type === 'class') {
       const result = classFromMermaid(text);
       return result.ok ? { ...result, kind: 'class', classes: result.diagram } : result;
@@ -362,6 +370,7 @@ export class DiagramEditor {
     else if (kind === 'gantt') this.kindEditor = new GanttEditor(this.kindApi(), from?.kind === 'gantt' ? from.diagram : starterGantt(), !from);
     else if (kind === 'journey') this.kindEditor = new JourneyEditor(this.kindApi(), from?.kind === 'journey' ? from.journey : starterJourney(), !from);
     else if (kind === 'pie') this.kindEditor = new PieEditor(this.kindApi(), from?.kind === 'pie' ? from.pie : starterPie(), !from);
+    else if (kind === 'architecture') this.kindEditor = new ArchitectureEditor(this.kindApi(), from?.kind === 'architecture' ? from.architecture : starterArchitecture(), !from);
     else if (kind === 'class') this.kindEditor = new ClassEditor(this.kindApi(), from?.kind === 'class' ? from.classes : starterClasses(), !from);
     else if (kind === 'er') this.kindEditor = new ErEditor(this.kindApi(), from?.kind === 'er' ? from.er : starterEr(), !from);
     else if (kind === 'state') this.kindEditor = new StateEditor(this.kindApi(), from?.kind === 'state' ? from.state : starterState(), !from);
