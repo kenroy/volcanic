@@ -1,0 +1,16 @@
+// Everything the tests exercise, bundled as one module.
+export * from './mermaid';
+export * from './sequence';
+export * from './gantt';
+export { escapeText, unescapeText, readDescription } from './kinds';
+export * from './themes';
+export * from './holidays';
+export { autoLayout, estimateSize } from './layout';
+export * from './mindmap';
+export * from './journey';
+export * from './pie';
+export * from './radar';
+export * from './quadrant';
+export * from './timeline';
+export * from './xychart';
+export * from './kanban';

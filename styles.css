@@ -1,0 +1,3498 @@
+/* Volcanic — visual Mermaid editor. Colours come from the active Obsidian theme. */
+
+.modal.volcanic-modal {
+  width: min(1320px, 96vw);
+  height: min(880px, 92vh);
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.volcanic-modal .modal-title {
+  padding: var(--size-4-3) var(--size-4-12) var(--size-4-3) var(--size-4-4);
+  margin: 0;
+  font-size: var(--font-ui-large);
+}
+
+.volcanic-modal .modal-content {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Shell ─────────────────────────────────────────────── */
+
+.volcanic-editor {
+  --volcanic-line: var(--text-muted);
+  --volcanic-accent: var(--interactive-accent);
+  --volcanic-focus: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--volcanic-accent);
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-medium);
+}
+
+.volcanic-editor *,
+.volcanic-editor *::before,
+.volcanic-editor *::after {
+  box-sizing: border-box;
+}
+
+.volcanic-editor [hidden] {
+  display: none !important;
+}
+
+.volcanic-editor :focus-visible {
+  outline: none;
+  box-shadow: var(--volcanic-focus);
+}
+
+.volcanic-editor:not(.is-flowchart) .volcanic-flow-only,
+.volcanic-editor.is-flowchart .volcanic-kind-only,
+.volcanic-editor.is-code .volcanic-kind-only,
+.volcanic-editor.is-code .volcanic-visual-only,
+.volcanic-editor:not(.is-code) .volcanic-code-only {
+  display: none;
+}
+
+.volcanic-sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.volcanic-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--size-4-2) var(--size-4-4);
+  padding: var(--size-4-2) var(--size-4-4) var(--size-4-3);
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+.volcanic-meta-title {
+  flex: 1 1 240px;
+}
+
+.volcanic-meta-align {
+  flex: 0 0 140px;
+}
+
+.volcanic-meta-description {
+  flex: 2 1 320px;
+}
+
+.volcanic-required {
+  font-weight: var(--font-normal, 400);
+}
+
+.volcanic-editor .volcanic-input[aria-invalid='true'] {
+  border-color: var(--text-error);
+  box-shadow: 0 0 0 1px var(--text-error);
+}
+
+.volcanic-field-error {
+  margin: 0;
+  color: var(--text-error);
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-medium);
+}
+
+.volcanic-field-error::before {
+  content: '⚠ ';
+}
+
+.volcanic-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-4-2) var(--size-4-4);
+  padding: var(--size-4-2) var(--size-4-4);
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+.volcanic-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-1);
+  margin-inline-start: auto;
+}
+
+.volcanic-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr) 340px;
+  background: var(--background-secondary);
+}
+
+.volcanic-editor.is-code .volcanic-body {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.volcanic-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-4);
+  padding: var(--size-4-3) var(--size-4-4);
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+.volcanic-status {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-footer-actions {
+  display: flex;
+  gap: var(--size-4-2);
+}
+
+/* ── Controls ─────────────────────────────────────────────── */
+
+.volcanic-editor .volcanic-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-4-1);
+  min-height: 32px;
+  padding: var(--size-4-1) var(--size-4-3);
+  cursor: pointer;
+}
+
+.volcanic-editor .volcanic-button[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.volcanic-editor .volcanic-button[aria-pressed='true'] {
+  background: var(--volcanic-accent);
+  color: var(--text-on-accent);
+}
+
+.volcanic-icon {
+  display: inline-flex;
+}
+
+.volcanic-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.volcanic-segmented {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--radius-m);
+  background: var(--background-modifier-hover);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.volcanic-editor .volcanic-segment {
+  min-height: 28px;
+  padding: 0 var(--size-4-4);
+  border: 0;
+  border-radius: calc(var(--radius-m) - 2px);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.volcanic-editor .volcanic-segment[aria-pressed='true'] {
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+.volcanic-field-inline {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+}
+
+.volcanic-field-inline label,
+.volcanic-field label,
+.volcanic-editor legend {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  font-weight: var(--font-medium);
+}
+
+.volcanic-editor .volcanic-select {
+  min-height: 32px;
+  max-width: 100%;
+}
+
+.volcanic-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.volcanic-panel > .volcanic-field {
+  /* In a vertical panel a field is only as tall as it needs to be. */
+  flex: 0 0 auto;
+}
+
+.volcanic-editor .volcanic-input {
+  width: 100%;
+  min-height: 32px;
+  resize: vertical;
+  font: inherit;
+}
+
+.volcanic-hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.4;
+}
+
+.volcanic-section-title {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Palette ─────────────────────────────────────────────── */
+
+.volcanic-palette {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2-2);
+  padding: var(--size-4-3) var(--size-4-2);
+  overflow-y: auto;
+  background: var(--background-primary);
+  border-inline-end: 1px solid var(--background-modifier-border);
+}
+
+.volcanic-palette .volcanic-section-title {
+  padding: 0 var(--size-4-2) var(--size-4-1);
+}
+
+.volcanic-editor .volcanic-palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--size-4-2);
+  width: 100%;
+  min-height: 36px;
+  height: auto;
+  padding: var(--size-4-1) var(--size-4-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-m);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  text-align: start;
+  cursor: grab;
+  touch-action: none;
+}
+
+.volcanic-editor .volcanic-palette-item:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--background-modifier-border);
+}
+
+.volcanic-shape-icon {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.volcanic-ghost {
+  position: absolute;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: var(--size-4-2) var(--size-4-3);
+  transform: translate(-50%, -50%);
+  border: 1.5px solid var(--volcanic-accent);
+  border-radius: var(--radius-m);
+  background: var(--background-primary);
+  box-shadow: var(--shadow-s);
+  pointer-events: none;
+  font-size: var(--font-ui-small);
+}
+
+/* ── Canvas ─────────────────────────────────────────────── */
+
+.volcanic-canvas-area {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.volcanic-canvas-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  background-color: var(--background-secondary);
+  background-image: radial-gradient(var(--background-modifier-border) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.volcanic-canvas {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.volcanic-edges {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.volcanic-edge {
+  cursor: pointer;
+  outline: none;
+}
+
+.volcanic-edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 20;
+  pointer-events: stroke;
+}
+
+.volcanic-edge-line {
+  fill: none;
+  stroke: var(--volcanic-line);
+  stroke-width: 1.75;
+  pointer-events: none;
+}
+
+.volcanic-edge-line.is-dotted {
+  stroke-dasharray: 3 5;
+  stroke-linecap: round;
+}
+
+.volcanic-edge-line.is-thick {
+  stroke-width: 3.5;
+}
+
+.volcanic-edge:hover .volcanic-edge-hit,
+.volcanic-edge:focus-visible .volcanic-edge-hit {
+  stroke: var(--background-modifier-hover);
+}
+
+.volcanic-edge:focus-visible {
+  box-shadow: none;
+}
+
+.volcanic-edge:focus-visible .volcanic-edge-hit {
+  stroke: var(--volcanic-accent);
+  stroke-opacity: 0.3;
+}
+
+.volcanic-edge.is-selected .volcanic-edge-line {
+  stroke: var(--volcanic-accent);
+  stroke-width: 2.75;
+}
+
+.volcanic-edge.is-selected .volcanic-edge-line.is-thick {
+  stroke-width: 4.5;
+}
+
+.volcanic-arrowhead {
+  fill: var(--volcanic-line);
+}
+
+.volcanic-arrowhead.is-selected {
+  fill: var(--volcanic-accent);
+}
+
+.volcanic-edge-label {
+  fill: var(--text-normal);
+  font-size: var(--font-ui-smaller);
+  paint-order: stroke;
+  stroke: var(--background-secondary);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.volcanic-guide {
+  stroke: var(--volcanic-accent);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.volcanic-drag-line {
+  fill: none;
+  stroke: var(--volcanic-accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.volcanic-node {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  max-width: 260px;
+  min-height: 48px;
+  padding: var(--size-4-2) var(--size-4-4);
+  border: 1.5px solid var(--volcanic-line);
+  border-radius: 2px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: box-shadow 120ms ease;
+}
+
+.volcanic-node[data-shape='rounded'] {
+  border-radius: 10px;
+}
+
+.volcanic-node[data-shape='stadium'] {
+  border-radius: 999px;
+}
+
+.volcanic-node[data-shape='subroutine']::before {
+  content: '';
+  position: absolute;
+  inset: 0 8px;
+  border-inline: 1.5px solid var(--volcanic-line);
+  pointer-events: none;
+}
+
+.volcanic-node[data-shape='subroutine'] {
+  padding-inline: var(--size-4-6);
+}
+
+/* Shapes drawn with an SVG outline instead of a CSS border. */
+.volcanic-node[data-shape='diamond'],
+.volcanic-node[data-shape='hexagon'],
+.volcanic-node[data-shape='parallelogram'],
+.volcanic-node[data-shape='circle'],
+.volcanic-node[data-shape='cylinder'] {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.volcanic-node[data-shape='diamond'] {
+  min-height: 84px;
+  padding: var(--size-4-5) var(--size-4-12);
+}
+
+.volcanic-node[data-shape='circle'] {
+  min-width: 96px;
+  min-height: 96px;
+  padding: var(--size-4-4);
+}
+
+.volcanic-node[data-shape='hexagon'],
+.volcanic-node[data-shape='parallelogram'] {
+  padding-inline: var(--size-4-8);
+}
+
+.volcanic-node[data-shape='cylinder'] {
+  min-height: 72px;
+  padding-top: var(--size-4-6);
+}
+
+.volcanic-node-outline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.volcanic-node-outline > * {
+  fill: var(--background-primary);
+  stroke: var(--volcanic-line);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.volcanic-node-outline > .volcanic-node-outline-detail {
+  fill: none;
+}
+
+.volcanic-node-label {
+  position: relative;
+  max-width: 100%;
+  text-align: center;
+  font-size: var(--font-ui-small);
+  line-height: 1.35;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.volcanic-node:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+}
+
+.volcanic-node.is-selected,
+.volcanic-node.is-drop-target {
+  border-color: var(--volcanic-accent);
+  border-width: 2.5px;
+}
+
+.volcanic-node.is-selected .volcanic-node-outline > *,
+.volcanic-node.is-drop-target .volcanic-node-outline > * {
+  stroke: var(--volcanic-accent);
+  stroke-width: 2.5;
+}
+
+.volcanic-node[data-shape='diamond'].is-selected,
+.volcanic-node[data-shape='hexagon'].is-selected,
+.volcanic-node[data-shape='parallelogram'].is-selected,
+.volcanic-node[data-shape='circle'].is-selected,
+.volcanic-node[data-shape='cylinder'].is-selected,
+.volcanic-node[data-shape='diamond'].is-drop-target,
+.volcanic-node[data-shape='hexagon'].is-drop-target,
+.volcanic-node[data-shape='parallelogram'].is-drop-target,
+.volcanic-node[data-shape='circle'].is-drop-target,
+.volcanic-node[data-shape='cylinder'].is-drop-target {
+  border-color: transparent;
+}
+
+.volcanic-editor .volcanic-node:focus-visible {
+  box-shadow: var(--volcanic-focus);
+}
+
+.volcanic-node.is-dragging {
+  cursor: grabbing;
+  z-index: 3;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+  transition: none;
+}
+
+.volcanic-node.is-connect-source {
+  outline: 2px dashed var(--volcanic-accent);
+  outline-offset: 4px;
+}
+
+.volcanic-editor.is-connecting .volcanic-node {
+  cursor: crosshair;
+}
+
+.volcanic-node-handle {
+  position: absolute;
+  inset-inline-end: -12px;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  cursor: crosshair;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  touch-action: none;
+}
+
+.volcanic-node-handle::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 2px solid var(--background-primary);
+  background: var(--volcanic-accent);
+}
+
+.volcanic-node:hover .volcanic-node-handle,
+.volcanic-node.is-selected .volcanic-node-handle,
+.volcanic-node:focus-visible .volcanic-node-handle {
+  opacity: 1;
+}
+
+.volcanic-node.is-editing .volcanic-node-label {
+  visibility: hidden;
+}
+
+.volcanic-editor .volcanic-node-editor {
+  position: absolute;
+  inset: 4px;
+  z-index: 2;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  padding: var(--size-4-1) var(--size-4-2);
+  resize: none;
+  border: 1.5px solid var(--volcanic-accent);
+  border-radius: var(--radius-s);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font: inherit;
+  font-size: var(--font-ui-small);
+  line-height: 1.35;
+  text-align: center;
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.volcanic-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(340px, 86%);
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: var(--size-4-6);
+  border: 1.5px dashed var(--background-modifier-border-hover);
+  border-radius: var(--radius-l);
+  background: var(--background-primary);
+  text-align: center;
+}
+
+.volcanic-empty-title {
+  font-size: var(--font-ui-large);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-empty p {
+  margin: 0 0 var(--size-4-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-banner {
+  position: absolute;
+  top: var(--size-4-3);
+  left: 50%;
+  z-index: 5;
+  max-width: calc(100% - 24px);
+  transform: translateX(-50%);
+  padding: var(--size-4-2) var(--size-4-4);
+  border-radius: 999px;
+  background: var(--volcanic-accent);
+  color: var(--text-on-accent);
+  font-size: var(--font-ui-small);
+  box-shadow: var(--shadow-s);
+  pointer-events: none;
+}
+
+/* ── Side column ─────────────────────────────────────────────── */
+
+.volcanic-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  min-width: 0;
+  min-height: 0;
+  padding: var(--size-4-2);
+  background: var(--background-secondary);
+  border-inline-start: 1px solid var(--background-modifier-border);
+}
+
+.volcanic-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l);
+  background: var(--background-primary);
+  overflow: hidden;
+}
+
+.volcanic-output {
+  flex: 0 1 42%;
+  min-height: 180px;
+}
+
+.volcanic-details {
+  flex: 1 1 58%;
+}
+
+.volcanic-editor.is-code .volcanic-output {
+  flex: 1;
+}
+
+.volcanic-editor.is-code .volcanic-output .volcanic-tabs {
+  display: none;
+}
+
+.volcanic-tabs {
+  display: flex;
+  gap: var(--size-4-1);
+  padding: var(--size-4-1) var(--size-4-2) 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.volcanic-editor .volcanic-tab {
+  min-height: 32px;
+  padding: 0 var(--size-4-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: var(--radius-s) var(--radius-s) 0 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  cursor: pointer;
+}
+
+.volcanic-editor .volcanic-tab[aria-selected='true'] {
+  border-bottom-color: var(--volcanic-accent);
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-editor .volcanic-tab:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--volcanic-accent);
+}
+
+.volcanic-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--size-4-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-3);
+}
+
+.volcanic-panel-title,
+.volcanic-subsection h4 {
+  margin: 0;
+  font-size: var(--font-ui-small);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-preview {
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.volcanic-preview,
+.volcanic-diagram,
+.volcanic-native-host {
+  /* Pele draws the lettering inside a filled bar in this colour, so it must be a real one. */
+  --pele-bg: var(--background-primary);
+  --pele-fg: var(--text-normal);
+  --pele-muted: var(--text-muted);
+  --pele-line: var(--text-muted);
+  --pele-surface: var(--background-secondary);
+  --pele-surface-alt: var(--background-modifier-hover);
+  --pele-border: var(--text-muted);
+  --pele-accent: var(--interactive-accent);
+  --pele-font: var(--font-interface);
+  --pele-font-mono: var(--font-monospace);
+}
+
+.volcanic-preview-host {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Scale the whole diagram to fit the panel, whatever its shape. */
+.volcanic-preview-host svg {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+
+.volcanic-preview-message {
+  margin: auto;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  text-align: center;
+  white-space: pre-wrap;
+}
+
+.volcanic-preview-message.is-error {
+  width: 100%;
+  padding: var(--size-4-3);
+  border: 1px solid var(--text-error);
+  border-radius: var(--radius-m);
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-smaller);
+  text-align: start;
+  overflow-x: auto;
+}
+
+.volcanic-preview-message.is-error::before {
+  content: 'Error';
+  display: block;
+  margin-bottom: var(--size-4-1);
+  color: var(--text-error);
+  font-family: var(--font-interface);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-code-view {
+  flex: 1;
+  min-height: 60px;
+  margin: 0;
+  padding: var(--size-4-2);
+  overflow: auto;
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.5;
+  white-space: pre;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.volcanic-code-panel .volcanic-button,
+.volcanic-inspector > .volcanic-button {
+  align-self: flex-start;
+}
+
+.volcanic-editor fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.volcanic-editor legend {
+  padding: 0;
+  margin-bottom: var(--size-2-2);
+}
+
+.volcanic-row {
+  display: flex;
+  gap: var(--size-4-2);
+  flex-wrap: wrap;
+}
+
+.volcanic-row > legend {
+  width: 100%;
+}
+
+.volcanic-shape-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--size-4-1);
+}
+
+.volcanic-shape-picker legend {
+  grid-column: 1 / -1;
+}
+
+.volcanic-shape-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: var(--size-4-2) var(--size-2-2) var(--size-4-1);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  text-align: center;
+  cursor: pointer;
+}
+
+.volcanic-shape-option:hover {
+  background: var(--background-modifier-hover);
+}
+
+.volcanic-shape-option:has(input:checked) {
+  border-color: var(--volcanic-accent);
+  box-shadow: inset 0 0 0 1px var(--volcanic-accent);
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-shape-option:has(input:focus-visible) {
+  box-shadow: var(--volcanic-focus);
+}
+
+.volcanic-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.volcanic-connect-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--size-4-2);
+}
+
+.volcanic-actions {
+  display: flex;
+  gap: var(--size-4-2);
+  flex-wrap: wrap;
+  padding-top: var(--size-4-2);
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.volcanic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.volcanic-editor .volcanic-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--size-4-2);
+  width: 100%;
+  min-height: 32px;
+  height: auto;
+  padding: var(--size-4-1) var(--size-4-2);
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  text-align: start;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.volcanic-editor .volcanic-list-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.volcanic-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-3);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  line-height: 1.5;
+}
+
+.volcanic-intro p {
+  margin: 0;
+}
+
+.volcanic-details-toggle summary {
+  min-height: 28px;
+  color: var(--text-normal);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+}
+
+.volcanic-shortcuts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--size-4-1) var(--size-4-3);
+  margin: var(--size-4-2) 0 0;
+  font-size: var(--font-ui-smaller);
+}
+
+.volcanic-shortcuts dt,
+.volcanic-shortcuts dd {
+  margin: 0;
+}
+
+.volcanic-shortcuts kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-smaller);
+  white-space: nowrap;
+}
+
+/* ── Code mode ─────────────────────────────────────────────── */
+
+.volcanic-code-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  min-width: 0;
+  min-height: 0;
+  padding: var(--size-4-3);
+  background: var(--background-primary);
+}
+
+.volcanic-code-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+}
+
+.volcanic-editor .volcanic-code-field {
+  flex: 1;
+  width: 100%;
+  min-height: 160px;
+  padding: var(--size-4-3);
+  resize: none;
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+  line-height: 1.55;
+  white-space: pre;
+  tab-size: 4;
+}
+
+.volcanic-notice {
+  margin: 0;
+  padding: var(--size-4-2) var(--size-4-3);
+  border-inline-start: 3px solid var(--volcanic-accent);
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+  font-size: var(--font-ui-small);
+}
+
+/* ── Diagrams drawn in notes ─────────────────────────────────────────────── */
+
+/* Padding, not margin: the editor measures these blocks and ignores margins,
+   which puts clicks below a diagram in the wrong place. */
+.volcanic-diagram {
+  position: relative;
+  margin: 0;
+  padding: var(--size-4-4) 0;
+}
+
+.volcanic-diagram-host {
+  text-align: center;
+  overflow-x: auto;
+}
+
+.volcanic-diagram-host svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.volcanic-diagram-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-diagram-error {
+  padding: var(--size-4-3);
+  border: 1px solid var(--text-error);
+  border-radius: var(--radius-m);
+  text-align: start;
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-diagram-error pre {
+  margin: var(--size-4-2) 0 0;
+  overflow-x: auto;
+  font-size: var(--font-ui-smaller);
+}
+
+/* ── Edit button on rendered diagrams ─────────────────────────────────────────────── */
+
+.volcanic-has-edit {
+  position: relative;
+}
+
+.volcanic-block-tools {
+  position: absolute;
+  top: var(--size-4-1);
+  inset-inline-end: var(--size-4-1);
+  z-index: 1;
+  display: flex;
+  gap: var(--size-4-1);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.volcanic-edit-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  min-height: 28px;
+  cursor: pointer;
+}
+
+.volcanic-has-edit:hover .volcanic-block-tools,
+.volcanic-block-tools:focus-within {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .volcanic-block-tools,
+  .volcanic-node-handle {
+    opacity: 1;
+  }
+}
+
+@media print {
+  .volcanic-block-tools {
+    display: none;
+  }
+}
+
+/* ── Small screens ─────────────────────────────────────────────── */
+
+@media (max-width: 860px) {
+  .volcanic-body,
+  .volcanic-editor.is-code .volcanic-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: min-content;
+    overflow-y: auto;
+  }
+
+  .volcanic-palette {
+    flex-direction: row;
+    overflow-x: auto;
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+  }
+
+  .volcanic-palette .volcanic-section-title {
+    display: none;
+  }
+
+  .volcanic-editor .volcanic-palette-item {
+    width: auto;
+    flex: none;
+  }
+
+  .volcanic-canvas-area {
+    height: 46vh;
+  }
+
+  .volcanic-code-area {
+    min-height: 40vh;
+  }
+
+  .volcanic-side {
+    border-inline-start: 0;
+    border-top: 1px solid var(--background-modifier-border);
+  }
+
+  .volcanic-output,
+  .volcanic-details {
+    flex: none;
+  }
+
+  .volcanic-panel {
+    max-height: 60vh;
+  }
+}
+
+/* ── Preferences ─────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .volcanic-editor * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .volcanic-editor :focus-visible,
+  .volcanic-node:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .volcanic-node.is-selected {
+    border-color: Highlight;
+  }
+
+  .volcanic-edge-line,
+  .volcanic-node-outline > * {
+    stroke: CanvasText;
+  }
+
+  .volcanic-edge.is-selected .volcanic-edge-line,
+  .volcanic-node.is-selected .volcanic-node-outline > * {
+    stroke: Highlight;
+  }
+
+  .volcanic-arrowhead {
+    fill: CanvasText;
+  }
+
+  .volcanic-guide {
+    stroke: Highlight;
+  }
+
+  .volcanic-node-handle::after {
+    background: Highlight;
+  }
+}
+
+/* ── Sequence diagram and Gantt editors ─────────────────────────────────────────────── */
+
+@media (min-width: 861px) {
+  .volcanic-editor:not(.is-flowchart):not(.is-code) .volcanic-body {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 34%);
+  }
+}
+
+.volcanic-kind-host {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+}
+
+.volcanic-kind {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-secondary);
+}
+
+.volcanic-kind-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-4-2) var(--size-4-3);
+  padding: var(--size-4-2) var(--size-4-3);
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+.volcanic-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  min-height: 28px;
+  font-size: var(--font-ui-small);
+  cursor: pointer;
+}
+
+.volcanic-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-1) var(--size-4-4);
+}
+
+.volcanic-kind-main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+}
+
+.volcanic-kind-canvas {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.volcanic-kind-side {
+  margin: var(--size-4-2);
+  min-height: 0;
+}
+
+@media (max-width: 1100px) {
+  .volcanic-kind-main {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(260px, 1fr) minmax(220px, auto);
+  }
+}
+
+/* Sequence canvas */
+
+.volcanic-seq-canvas,
+.volcanic-gantt-scroll {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  background-color: var(--background-secondary);
+}
+
+.volcanic-seq-svg {
+  display: block;
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+}
+
+.volcanic-seq-life {
+  stroke: var(--background-modifier-border-hover);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+}
+
+.volcanic-seq-box {
+  fill: var(--background-primary);
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+}
+
+.volcanic-seq-name,
+.volcanic-seq-text {
+  fill: var(--text-normal);
+  font-size: var(--font-ui-small);
+  pointer-events: none;
+  user-select: none;
+}
+
+.volcanic-seq-name {
+  font-weight: var(--font-semibold);
+  text-anchor: middle;
+}
+
+.volcanic-seq-hint {
+  fill: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-seq-hit {
+  fill: transparent;
+}
+
+.volcanic-seq-line {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.75;
+}
+
+.volcanic-seq-line.is-dotted {
+  stroke-dasharray: 5 4;
+}
+
+.volcanic-seq-note {
+  fill: var(--background-modifier-hover);
+  stroke: var(--text-faint);
+  stroke-width: 1.25;
+}
+
+.volcanic-seq-participant,
+.volcanic-seq-step {
+  cursor: grab;
+  outline: none;
+  touch-action: none;
+}
+
+.volcanic-seq-participant:hover .volcanic-seq-box,
+.volcanic-seq-step:hover .volcanic-seq-hit {
+  fill: var(--background-modifier-hover);
+}
+
+.volcanic-seq-participant.is-selected .volcanic-seq-box,
+.volcanic-seq-step.is-selected .volcanic-seq-note {
+  stroke: var(--volcanic-accent);
+  stroke-width: 2.5;
+}
+
+.volcanic-seq-step.is-selected .volcanic-seq-line {
+  stroke: var(--volcanic-accent);
+  stroke-width: 2.75;
+}
+
+.volcanic-seq-step.is-selected .volcanic-seq-hit {
+  fill: color-mix(in srgb, var(--volcanic-accent) 10%, transparent);
+}
+
+.volcanic-seq-participant:focus-visible .volcanic-seq-box,
+.volcanic-seq-step:focus-visible .volcanic-seq-hit,
+.volcanic-seq-step:focus-visible .volcanic-seq-note {
+  stroke: var(--volcanic-accent);
+  stroke-width: 3;
+}
+
+.volcanic-seq-step:focus-visible .volcanic-seq-hit {
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.volcanic-seq-participant.is-dragging,
+.volcanic-seq-step.is-dragging {
+  cursor: grabbing;
+  opacity: 0.8;
+}
+
+.volcanic-seq-drop {
+  stroke: var(--volcanic-accent);
+  stroke-width: 2.5;
+  stroke-dasharray: 6 4;
+  pointer-events: none;
+}
+
+/* Gantt timeline */
+
+.volcanic-gantt-inner {
+  position: relative;
+  min-height: 100%;
+  font-family: var(--font-interface);
+}
+
+.volcanic-gantt-row {
+  position: relative;
+  display: flex;
+  height: 40px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.volcanic-gantt-row.is-selected .volcanic-gantt-label {
+  background: var(--background-modifier-hover);
+}
+
+.volcanic-gantt-row.is-section {
+  background: color-mix(in srgb, var(--text-muted) 8%, transparent);
+}
+
+.volcanic-gantt-label {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  flex: 0 0 230px;
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: 0 var(--size-4-3);
+  overflow: hidden;
+  border-inline-end: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.volcanic-gantt-label span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.volcanic-gantt-link {
+  flex: none;
+  color: var(--text-muted);
+}
+
+.volcanic-gantt-ruler {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  height: 46px;
+  background: var(--background-primary);
+}
+
+.volcanic-gantt-ruler .volcanic-gantt-label {
+  color: var(--text-muted);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-gantt-track {
+  position: relative;
+  flex: none;
+}
+
+.volcanic-gantt-tick {
+  position: absolute;
+  bottom: 6px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  white-space: nowrap;
+}
+
+.volcanic-gantt-tick.is-major {
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-gantt-lines {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.volcanic-gantt-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--background-modifier-border);
+}
+
+.volcanic-gantt-line.is-major {
+  background: var(--background-modifier-border-hover);
+}
+
+.volcanic-gantt-today {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-inline-start: 2px dashed var(--text-error);
+}
+
+.volcanic-gantt-section-button {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  font-weight: var(--font-semibold);
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.volcanic-gantt-section-button.is-selected {
+  box-shadow: inset 0 0 0 2px var(--volcanic-accent);
+}
+
+.volcanic-gantt-empty {
+  padding: var(--size-4-4);
+}
+
+.volcanic-gantt-bar {
+  position: absolute;
+  top: 8px;
+  height: 24px;
+  z-index: 2;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--text-muted) 22%, var(--background-primary));
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.volcanic-gantt-bar.is-active {
+  border-color: var(--interactive-accent);
+  background: color-mix(in srgb, var(--interactive-accent) 35%, var(--background-primary));
+}
+
+.volcanic-gantt-bar.is-done {
+  border-color: var(--text-faint);
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--text-faint) 30%, var(--background-primary)) 0 6px, var(--background-primary) 6px 12px);
+}
+
+.volcanic-gantt-bar.is-critical {
+  border-color: var(--text-error);
+  border-width: 2.5px;
+}
+
+.volcanic-gantt-bar.is-milestone {
+  top: 11px;
+  height: 18px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  background: var(--text-normal);
+}
+
+.volcanic-gantt-bar.is-selected,
+.volcanic-editor .volcanic-gantt-bar:focus-visible {
+  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--volcanic-accent);
+}
+
+.volcanic-gantt-bar.is-dragging {
+  cursor: grabbing;
+  opacity: 0.85;
+}
+
+.volcanic-gantt-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  inset-inline-end: -4px;
+  width: 10px;
+  cursor: ew-resize;
+}
+
+.volcanic-gantt-handle::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  inset-inline-end: 4px;
+  width: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+@media (forced-colors: active) {
+  .volcanic-seq-line,
+  .volcanic-seq-box {
+    stroke: CanvasText;
+  }
+
+  .volcanic-seq-participant.is-selected .volcanic-seq-box,
+  .volcanic-seq-step.is-selected .volcanic-seq-line,
+  .volcanic-seq-step.is-selected .volcanic-seq-note {
+    stroke: Highlight;
+  }
+
+  .volcanic-gantt-bar {
+    border-color: CanvasText;
+  }
+
+  .volcanic-gantt-bar.is-selected {
+    border-color: Highlight;
+  }
+}
+
+.volcanic-editor .volcanic-gantt-rename {
+  width: 100%;
+  min-height: 28px;
+  padding: 2px 8px;
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-seq-stage {
+  position: relative;
+  display: inline-block;
+}
+
+.volcanic-editor .volcanic-seq-edit {
+  position: absolute;
+  z-index: 5;
+  min-height: 0;
+  padding: 4px 8px;
+  resize: none;
+  font-size: var(--font-ui-small);
+  line-height: 1.35;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--volcanic-accent), var(--shadow-s);
+}
+
+/* ── Editing inside the note ─────────────────────────────────────────────── */
+
+.volcanic-hidden {
+  display: none !important;
+}
+
+.volcanic-inline-host {
+  container-type: inline-size;
+  container-name: volcanic;
+  display: flex;
+  height: min(82vh, 800px);
+  min-height: 480px;
+  margin: var(--size-4-2) 0;
+  overflow: hidden;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l);
+  background: var(--background-primary);
+  text-align: start;
+}
+
+/* The note column is often narrower than the window, so lay out by the editor's own width. */
+@container volcanic (max-width: 900px) {
+  .volcanic-body,
+  .volcanic-editor.is-code .volcanic-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: min-content;
+    overflow-y: auto;
+  }
+
+  .volcanic-palette {
+    flex-direction: row;
+    overflow-x: auto;
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+  }
+
+  .volcanic-palette .volcanic-section-title {
+    display: none;
+  }
+
+  .volcanic-editor .volcanic-palette-item {
+    width: auto;
+    flex: none;
+  }
+
+  .volcanic-canvas-area {
+    height: 46vh;
+  }
+
+  .volcanic-code-area {
+    min-height: 40vh;
+  }
+
+  .volcanic-side {
+    border-inline-start: 0;
+    border-top: 1px solid var(--background-modifier-border);
+  }
+
+  .volcanic-output,
+  .volcanic-details {
+    flex: none;
+  }
+
+  .volcanic-panel {
+    max-height: 60vh;
+  }
+
+  .volcanic-editor:not(.is-flowchart):not(.is-code) .volcanic-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container volcanic (max-width: 900px) {
+  .volcanic-kind-host,
+  .volcanic-kind {
+    min-height: 440px;
+  }
+}
+
+@media (max-width: 860px) {
+  .volcanic-kind-host,
+  .volcanic-kind {
+    min-height: 440px;
+  }
+}
+
+@container volcanic (max-width: 640px) {
+  .volcanic-kind-main {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(260px, 1fr) minmax(220px, auto);
+  }
+}
+
+/* In Live Preview, Obsidian's own "Edit this block" button sits in the corner; keep ours beside it. */
+.cm-lang-mermaid.volcanic-has-edit {
+  position: relative;
+}
+
+.cm-lang-mermaid .volcanic-block-tools {
+  inset-inline-end: var(--size-4-12);
+}
+
+/* Live date and length beside a bar while it is being dragged. */
+.volcanic-gantt-readout {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  padding: 2px var(--size-4-2);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-primary);
+  box-shadow: var(--shadow-s);
+  color: var(--text-normal);
+  font-size: var(--font-ui-smaller);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Obsidian's hover tooltip shows the length from before the drag, so hide it until the bar is dropped. */
+body.volcanic-is-dragging .tooltip {
+  display: none !important;
+}
+
+/* Saturdays and Sundays: a very light band behind the rows. */
+.volcanic-gantt-weekend {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--text-muted) 6%, transparent);
+}
+
+
+/* ── Colour theme picker ───────────────────────────────────────── */
+
+.volcanic-meta-theme {
+  flex: 0 0 230px;
+  position: relative;
+}
+
+.volcanic-theme-label {
+  display: block;
+  margin-bottom: var(--size-4-1);
+  font-size: var(--font-ui-small);
+  font-weight: var(--font-medium);
+}
+
+.volcanic-swatch-select {
+  position: relative;
+}
+
+.volcanic-swatch-button {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  width: 100%;
+  height: var(--input-height, 30px);
+  padding: 0 var(--size-4-2);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--interactive-normal);
+  box-shadow: none;
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  text-align: start;
+  cursor: pointer;
+}
+
+.volcanic-swatch-button:hover {
+  background: var(--interactive-hover);
+}
+
+.volcanic-swatch-button:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 1px;
+}
+
+.volcanic-swatch-slot {
+  display: inline-flex;
+  flex: none;
+}
+
+.volcanic-swatch-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.volcanic-swatch-chevron {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-inline-end: 2px;
+  border-inline-end: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.volcanic-swatch-strip {
+  display: inline-flex;
+  flex: none;
+  gap: 3px;
+}
+
+.volcanic-swatch-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-normal) 22%, transparent);
+}
+
+.volcanic-swatch-list {
+  position: absolute;
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  width: 340px;
+  max-width: 90vw;
+  top: calc(100% + 4px);
+  z-index: 50;
+  max-height: min(60vh, 360px);
+  margin: 0;
+  padding: var(--size-4-1);
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-primary);
+  box-shadow: var(--shadow-l);
+}
+
+.volcanic-swatch-list[hidden] {
+  display: none;
+}
+
+.volcanic-swatch-option {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-3);
+  padding: var(--size-4-2) var(--size-4-2);
+  border-radius: var(--radius-s);
+  font-size: var(--font-ui-small);
+  cursor: pointer;
+}
+
+.volcanic-swatch-option .volcanic-swatch-dot {
+  width: 20px;
+  height: 20px;
+}
+
+.volcanic-swatch-option.is-active {
+  background: var(--background-modifier-hover);
+}
+
+.volcanic-swatch-option[aria-selected='true'] {
+  box-shadow: inset 3px 0 0 var(--interactive-accent);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-swatch-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.volcanic-swatch-desc {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-normal, 400);
+  white-space: normal;
+}
+
+@media (forced-colors: active) {
+  .volcanic-swatch-option.is-active {
+    outline: 2px solid Highlight;
+  }
+}
+
+/* ── Colour themes in the visual editors ───────────────────────── */
+
+.volcanic-editor[data-volcanic-theme] .volcanic-gantt-bar {
+  border-color: var(--pele-border);
+  background: color-mix(in srgb, var(--pele-series-1) 28%, var(--background-primary));
+}
+
+.volcanic-editor[data-volcanic-theme] .volcanic-gantt-bar.is-active {
+  border-color: var(--pele-accent);
+  background: color-mix(in srgb, var(--pele-accent) 45%, var(--background-primary));
+}
+
+.volcanic-editor[data-volcanic-theme] .volcanic-gantt-bar.is-done {
+  border-color: var(--pele-series-2);
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--pele-series-2) 35%, var(--background-primary)) 0 6px, var(--background-primary) 6px 12px);
+}
+
+.volcanic-editor[data-volcanic-theme] .volcanic-gantt-bar.is-critical {
+  border-color: var(--pele-critical);
+}
+
+.volcanic-editor[data-volcanic-theme] .volcanic-gantt-bar.is-milestone {
+  border-color: var(--pele-accent);
+  background: var(--pele-accent);
+}
+
+.volcanic-editor[data-volcanic-theme] .volcanic-gantt-row.is-section {
+  background: color-mix(in srgb, var(--pele-surface-alt) 80%, transparent);
+}
+
+.volcanic-editor[data-volcanic-theme] .volcanic-seq-box {
+  fill: var(--pele-surface);
+  stroke: var(--pele-border);
+}
+
+.volcanic-editor[data-volcanic-theme] .volcanic-seq-line {
+  stroke: var(--pele-line);
+}
+
+.volcanic-editor[data-volcanic-theme] .volcanic-seq-note {
+  fill: var(--pele-surface-alt);
+  stroke: var(--pele-border);
+}
+
+.volcanic-editor[data-volcanic-theme] .volcanic-seq-life {
+  stroke: var(--pele-border);
+}
+
+.volcanic-editor[data-volcanic-theme] .volcanic-seq-participant:hover .volcanic-seq-box {
+  fill: var(--pele-surface-alt);
+}
+
+/* ── Responsive diagrams ───────────────────────────────────────── */
+
+[data-volcanic-fit] .mermaid > svg,
+[data-volcanic-fit] .volcanic-diagram-host > svg,
+[data-volcanic-fit] svg.pele {
+  width: 100% !important;
+  /* Never more than 1.6 times the size Pele drew it at. */
+  max-width: min(100%, calc(var(--volcanic-natural, 100000) * 1.6px)) !important;
+  height: auto !important;
+}
+
+[data-volcanic-fit] .mermaid > svg[data-volcanic-round],
+[data-volcanic-fit] .volcanic-diagram-host > svg[data-volcanic-round],
+[data-volcanic-fit] svg.pele[data-volcanic-round] {
+  /* A pie stays near its drawn size (about 400px wide) however wide the note is. */
+  max-width: min(100%, calc(var(--volcanic-natural, 400) * 1.25px)) !important;
+  max-height: 460px !important;
+}
+
+/* A radar chart is round too, and taller than it is wide, so it keeps its drawn size instead of a height limit. */
+[data-volcanic-fit] .mermaid > svg.pele-radar[data-volcanic-round],
+[data-volcanic-fit] .volcanic-diagram-host > svg.pele-radar[data-volcanic-round],
+[data-volcanic-fit] svg.pele-radar[data-volcanic-round] {
+  max-width: min(100%, calc(var(--volcanic-natural, 305) * 1.3px)) !important;
+  max-height: none !important;
+}
+
+/* A pie never grows with the page, whatever else has or has not been applied to it (not inside an open editor). */
+:is(.markdown-rendered, .cm-lang-mermaid, .volcanic-diagram) svg.pele-pie:not(.volcanic-inline-host *) {
+  width: 100% !important;
+  height: auto !important;
+  max-width: min(100%, max(520px, calc(var(--volcanic-natural, 0) * 1.25px))) !important;
+  max-height: none !important;
+}
+
+:is(.markdown-rendered, .cm-lang-mermaid, .volcanic-diagram) svg.pele-radar:not(.volcanic-inline-host *) {
+  width: 100% !important;
+  height: auto !important;
+  max-width: min(100%, max(380px, calc(var(--volcanic-natural, 0) * 1.3px))) !important;
+  max-height: none !important;
+}
+
+/* ── Assignee and percent complete in the Gantt editor ─────────── */
+
+.volcanic-gantt-bar.has-progress::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--progress, 0%);
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--text-normal) 24%, transparent);
+  pointer-events: none;
+}
+
+.volcanic-gantt-person,
+.volcanic-gantt-percent {
+  flex: none;
+  margin-inline-start: 4px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-semibold);
+  line-height: 16px;
+}
+
+.volcanic-progress-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+}
+
+.volcanic-progress-range {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.volcanic-progress-number {
+  flex: 0 0 64px;
+  width: 64px;
+}
+
+/* ── Resizing the editor's height ──────────────────────────────── */
+
+.volcanic-resize-handle {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 14px;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  color: var(--text-faint);
+}
+
+.volcanic-resize-grip {
+  width: 48px;
+  height: 4px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.volcanic-resize-handle:hover,
+.volcanic-resize-handle.is-dragging {
+  color: var(--interactive-accent);
+}
+
+.volcanic-resize-handle:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: -2px;
+  color: var(--interactive-accent);
+}
+
+.volcanic-modal .volcanic-resize-handle {
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+@media (forced-colors: active) {
+  .volcanic-resize-handle:focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+/* ── Public holidays on the timeline ───────────────────────────── */
+
+/* Pink, so non-working days stand apart from weekends (grey) and from any colour theme. */
+/* One colour per country: slots 1 to 12. Countries take their flag colours where they can (see holidays.ts). */
+body {
+  --volcanic-holiday-1: #e0457f; /* pink */
+  --volcanic-holiday-2: #2f78d8; /* blue */
+  --volcanic-holiday-3: #2e9e5b; /* green */
+  --volcanic-holiday-4: #d9a400; /* yellow */
+  --volcanic-holiday-5: #d6342c; /* red */
+  --volcanic-holiday-6: #e5871a; /* orange */
+  --volcanic-holiday-7: #8b5bd8; /* purple */
+  --volcanic-holiday-8: #12a0a8; /* teal */
+  --volcanic-holiday-9: #2c3f9e; /* navy */
+  --volcanic-holiday-10: #8d5a3b; /* brown */
+  --volcanic-holiday-11: #86b32a; /* lime */
+  --volcanic-holiday-12: #6b7a8d; /* slate */
+  --volcanic-holiday: var(--volcanic-holiday-1);
+}
+
+body.theme-dark {
+  --volcanic-holiday-1: #ff7fb2;
+  --volcanic-holiday-2: #6fa8ff;
+  --volcanic-holiday-3: #5fd68f;
+  --volcanic-holiday-4: #ffd23f;
+  --volcanic-holiday-5: #ff7a70;
+  --volcanic-holiday-6: #ffb255;
+  --volcanic-holiday-7: #b99aff;
+  --volcanic-holiday-8: #4fd2da;
+  --volcanic-holiday-9: #8c9cff;
+  --volcanic-holiday-10: #d4a07a;
+  --volcanic-holiday-11: #b8e05a;
+  --volcanic-holiday-12: #a8b4c4;
+}
+
+.volcanic-holiday-controls {
+  display: contents;
+}
+
+.volcanic-gantt-holiday {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* Each country sets --holiday to its own colour. */
+  background: color-mix(in srgb, var(--holiday, var(--volcanic-holiday)) 17%, transparent);
+  border-inline: 1px solid color-mix(in srgb, var(--holiday, var(--volcanic-holiday)) 42%, transparent);
+}
+
+.volcanic-gantt-holiday-flag {
+  position: absolute;
+  bottom: 2px;
+  width: 0;
+  height: 0;
+  border-inline: 4px solid transparent;
+  border-top: 7px solid var(--holiday, var(--volcanic-holiday));
+  cursor: help;
+}
+
+.volcanic-holiday-item {
+  padding: 2px 0;
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-holiday-item::before,
+.volcanic-holiday-dot {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-inline-end: 6px;
+  border-radius: 2px;
+  background: var(--holiday, var(--volcanic-holiday));
+  vertical-align: baseline;
+}
+
+.volcanic-holiday-legend {
+  text-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: var(--size-4-2) 0 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-holiday-heading {
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-holiday-none {
+  margin: 0;
+}
+
+/* One line per country, each with a switch for its holidays. */
+.volcanic-holiday-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.volcanic-holiday-line input {
+  flex: none;
+  align-self: center;
+  margin: 0;
+}
+
+.volcanic-holiday-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--holiday, var(--volcanic-holiday));
+}
+
+.volcanic-holiday-text strong {
+  color: var(--text-normal);
+}
+
+.volcanic-holiday-line.is-off {
+  opacity: 0.6;
+}
+
+.volcanic-holiday-line.is-off .volcanic-holiday-swatch {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--holiday, var(--volcanic-holiday));
+}
+
+.volcanic-holiday-line.is-off .volcanic-holiday-text > span {
+  text-decoration: line-through;
+}
+
+/* The Holidays panel: one row per country. */
+.volcanic-holiday-toggle[aria-expanded='true'] {
+  background: var(--background-modifier-hover);
+}
+
+.volcanic-holiday-panel {
+  flex: none;
+  padding: var(--size-4-2) var(--size-4-4) var(--size-4-3);
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+.volcanic-holiday-panel[hidden] {
+  display: none;
+}
+
+.volcanic-holiday-panel > .volcanic-hint {
+  margin: 0 0 var(--size-4-2);
+}
+
+.volcanic-holiday-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  margin: 0 0 var(--size-4-2);
+  padding: 0;
+  list-style: none;
+}
+
+.volcanic-holiday-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--size-4-2) var(--size-4-4);
+  max-width: 720px;
+}
+
+.volcanic-holiday-row .volcanic-field-inline {
+  min-width: 0;
+}
+
+.volcanic-holiday-row .volcanic-field-inline select {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.volcanic-holiday-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-4-2) var(--size-4-4);
+}
+
+.volcanic-holiday-row label {
+  white-space: nowrap;
+}
+
+.volcanic-meta-size {
+  flex: 0 0 150px;
+}
+
+/* ── Mind map editor ───────────────────────────────────────────── */
+
+.volcanic-editor {
+  --volcanic-branch-1: var(--color-blue, #3566c9);
+  --volcanic-branch-2: var(--color-orange, #d9822b);
+  --volcanic-branch-3: var(--color-green, #3a9a6c);
+  --volcanic-branch-4: var(--color-purple, #8a5cc8);
+  --volcanic-branch-5: var(--color-red, #c9496b);
+  --volcanic-branch-6: var(--color-cyan, #2f9aa8);
+  --volcanic-branch-7: var(--color-yellow, #a88a1c);
+  --volcanic-branch-8: var(--color-pink, #c9689b);
+}
+
+/* With a colour theme chosen, branches take the theme's series colours, as the finished diagram does. */
+.volcanic-editor[data-volcanic-theme] {
+  --volcanic-branch-1: var(--pele-series-1);
+  --volcanic-branch-2: var(--pele-series-2);
+  --volcanic-branch-3: var(--pele-series-3);
+  --volcanic-branch-4: var(--pele-series-4);
+  --volcanic-branch-5: var(--pele-series-5);
+  --volcanic-branch-6: var(--pele-series-6);
+  --volcanic-branch-7: var(--pele-series-7);
+  --volcanic-branch-8: var(--pele-series-8);
+}
+
+.volcanic-mind-scroll {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  background-color: var(--background-secondary);
+}
+
+.volcanic-mind-inner {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.volcanic-mind-links {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.volcanic-mind-link {
+  fill: none;
+  stroke: var(--branch, var(--text-muted));
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+
+.volcanic-mind-node {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 80px;
+  max-width: 240px;
+  padding: 6px 14px;
+  border: 2px solid var(--branch, var(--text-muted));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--branch, var(--text-muted)) 14%, var(--background-primary));
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  line-height: 1.35;
+  text-align: center;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  outline: none;
+}
+
+.volcanic-mind-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.volcanic-mind-node.is-root {
+  border-color: var(--interactive-accent);
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  font-weight: var(--font-semibold);
+  cursor: default;
+}
+
+.volcanic-mind-node[data-shape='rounded'] {
+  border-radius: 18px;
+}
+
+.volcanic-mind-node[data-shape='square'] {
+  border-radius: 2px;
+}
+
+.volcanic-mind-node[data-shape='circle'] {
+  border-radius: 999px;
+  padding-inline: 20px;
+}
+
+.volcanic-mind-node[data-shape='cloud'] {
+  border-radius: 45% / 70%;
+  padding-inline: 22px;
+}
+
+.volcanic-mind-node[data-shape='bang'] {
+  border-style: dashed;
+  border-width: 3px;
+  border-radius: 6px;
+}
+
+.volcanic-mind-node[data-shape='hexagon'] {
+  border-radius: 4px 20px;
+}
+
+.volcanic-mind-node.is-selected,
+.volcanic-mind-node:focus-visible {
+  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--volcanic-accent);
+}
+
+.volcanic-mind-node.is-dragging {
+  opacity: 0.4;
+}
+
+.volcanic-mind-node.is-drop-child {
+  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 5px var(--interactive-accent);
+  background: color-mix(in srgb, var(--interactive-accent) 28%, var(--background-primary));
+}
+
+.volcanic-mind-indicator {
+  position: absolute;
+  z-index: 3;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--interactive-accent);
+  pointer-events: none;
+}
+
+.volcanic-mind-indicator[hidden] {
+  display: none;
+}
+
+.volcanic-mind-ghost {
+  position: fixed !important;
+  z-index: 100000;
+  width: auto !important;
+  height: auto !important;
+  opacity: 0.85;
+  pointer-events: none;
+  box-shadow: var(--shadow-l);
+}
+
+.volcanic-mind-rename {
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+}
+
+.volcanic-mind-text-field {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.volcanic-mind-sublist {
+  margin: 0;
+  padding-inline-start: var(--size-4-4);
+  list-style: none;
+}
+
+.volcanic-outline > .volcanic-mind-sublist {
+  padding-inline-start: 0;
+}
+
+@media (forced-colors: active) {
+  .volcanic-mind-node.is-selected,
+  .volcanic-mind-node:focus-visible {
+    outline: 3px solid Highlight;
+  }
+}
+
+/* Obsidian's status bar floats over the bottom of the note, so leave room under an in-note editor for its buttons. */
+.volcanic-inline-host + .volcanic-resize-handle {
+  margin-bottom: 48px;
+}
+
+/* ── User journey editor ───────────────────────────────────────── */
+
+.volcanic-journey-scroll {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  background-color: var(--background-secondary);
+}
+
+.volcanic-journey-inner {
+  position: relative;
+  min-width: 100%;
+}
+
+.volcanic-journey-grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--background-modifier-border-hover);
+}
+
+.volcanic-journey-grid:nth-of-type(odd) {
+  background: color-mix(in srgb, var(--text-muted) 4%, transparent);
+}
+
+.volcanic-journey-axis {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  width: 74px;
+  background: color-mix(in srgb, var(--background-secondary) 94%, transparent);
+}
+
+.volcanic-journey-axis-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  height: 32px;
+  padding-inline: var(--size-4-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  line-height: 1.15;
+}
+
+.volcanic-journey-axis-label strong {
+  color: var(--text-normal);
+}
+
+.volcanic-journey-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.volcanic-journey-path {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+
+.volcanic-journey-section {
+  position: absolute;
+  top: 0;
+  height: 36px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--size-4-3);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--tone) 28%, var(--background-primary));
+  border: 2px solid var(--tone);
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  font-weight: var(--font-semibold);
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+}
+
+.volcanic-journey-section > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.volcanic-journey-card {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px var(--size-4-2);
+  border: 2px solid var(--tone);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--tone) 12%, var(--background-primary));
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  line-height: 1.25;
+  text-align: center;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  outline: none;
+  transition: top 120ms ease;
+}
+
+.volcanic-journey-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.volcanic-journey-people {
+  display: flex;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.volcanic-journey-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--background-primary);
+}
+
+.volcanic-journey-card.is-selected,
+.volcanic-journey-card:focus-visible,
+.volcanic-journey-section.is-selected,
+.volcanic-journey-section:focus-visible {
+  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px var(--volcanic-accent);
+}
+
+.volcanic-journey-card.is-dragging {
+  opacity: 0.4;
+  transition: none;
+}
+
+.volcanic-journey-ghost {
+  position: fixed !important;
+  z-index: 100000;
+  opacity: 0.88;
+  pointer-events: none;
+  box-shadow: var(--shadow-l);
+  transition: none;
+}
+
+.volcanic-journey-marker {
+  position: absolute;
+  z-index: 5;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--interactive-accent);
+  pointer-events: none;
+}
+
+.volcanic-journey-glow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--interactive-accent) 14%, transparent);
+  pointer-events: none;
+}
+
+.volcanic-journey-marker[hidden],
+.volcanic-journey-glow[hidden] {
+  display: none;
+}
+
+.volcanic-journey-legend {
+  position: absolute;
+  left: 74px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-2) var(--size-4-4);
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+}
+
+.volcanic-journey-person {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.volcanic-journey-rename {
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+}
+
+@media (forced-colors: active) {
+  .volcanic-journey-card.is-selected,
+  .volcanic-journey-card:focus-visible,
+  .volcanic-journey-section.is-selected,
+  .volcanic-journey-section:focus-visible {
+    outline: 3px solid Highlight;
+  }
+}
+
+/* Pie chart editor */
+
+.volcanic-pie-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: var(--size-4-3);
+}
+
+.volcanic-pie-scroll {
+  container-type: inline-size;
+  container-name: volcanic-pie;
+}
+
+.volcanic-pie-table {
+  position: relative;
+  min-width: 0;
+  --pie-columns: 28px 22px minmax(90px, 1.2fr) 72px minmax(60px, 1fr) 48px 96px;
+}
+
+.volcanic-pie-head,
+.volcanic-pie-row {
+  display: grid;
+  grid-template-columns: var(--pie-columns);
+  align-items: center;
+  gap: var(--size-4-2);
+}
+
+.volcanic-pie-head {
+  padding: 0 var(--size-4-2) var(--size-4-1);
+  border: 1px solid transparent;
+  border-width: 0 1px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.volcanic-pie-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+}
+
+.volcanic-pie-row {
+  padding: var(--size-4-1) var(--size-4-2);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+}
+
+.volcanic-pie-row.is-dragging {
+  opacity: 0.45;
+}
+
+.volcanic-pie-grip {
+  cursor: grab;
+  touch-action: none;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 0;
+  height: 28px;
+}
+
+.volcanic-pie-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.volcanic-pie-name,
+.volcanic-pie-value {
+  width: 100%;
+  min-width: 0;
+}
+
+.volcanic-pie-slider {
+  width: 100%;
+  min-width: 0;
+}
+
+.volcanic-pie-share {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+}
+
+.volcanic-pie-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--interactive-accent);
+  pointer-events: none;
+}
+
+.volcanic-pie-indicator[hidden] {
+  display: none;
+}
+
+.volcanic-pie-empty {
+  padding: var(--size-4-3);
+}
+
+.volcanic-pie-shares {
+  margin: 0;
+  padding-left: var(--size-4-4);
+  font-size: var(--font-ui-small);
+}
+
+/* In a narrow editor the Remove button shrinks to its icon (its name is kept for screen readers). */
+@container volcanic-pie (max-width: 640px) {
+  .volcanic-pie-table {
+    --pie-columns: 24px 18px minmax(70px, 1.2fr) 64px minmax(48px, 1fr) 44px 32px;
+  }
+  .volcanic-pie-row .volcanic-button > span:not(.volcanic-icon) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .volcanic-pie-row .volcanic-button {
+    padding-inline: 0;
+    justify-content: center;
+  }
+}
+
+@media (forced-colors: active) {
+  .volcanic-pie-row,
+  .volcanic-pie-swatch {
+    border-color: CanvasText;
+  }
+  .volcanic-pie-indicator {
+    background: Highlight;
+  }
+}
+
+/* Pie total warning */
+
+.volcanic-pie-banner {
+  margin-bottom: var(--size-4-3);
+  padding: var(--size-4-2) var(--size-4-3);
+  border: 2px solid var(--text-error);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--text-error) 14%, var(--background-primary));
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-pie-banner[hidden] {
+  display: none;
+}
+
+.volcanic-pie-list.is-over .volcanic-pie-share {
+  color: var(--text-error);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-pie-meter-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--background-modifier-border);
+  overflow: hidden;
+}
+
+.volcanic-pie-meter-fill {
+  height: 100%;
+  background: var(--interactive-accent);
+}
+
+.volcanic-pie-meter.is-over .volcanic-pie-meter-fill {
+  background: var(--text-error);
+}
+
+.volcanic-pie-meter-text {
+  margin: var(--size-4-1) 0 var(--size-4-2);
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-pie-meter.is-over .volcanic-pie-meter-text {
+  color: var(--text-error);
+  font-weight: var(--font-semibold);
+}
+
+@media (forced-colors: active) {
+  .volcanic-pie-banner {
+    border-color: Highlight;
+  }
+}
+
+/* Radar chart editor (its grid styles are shared by the XY chart editor) */
+
+.volcanic-radar-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: var(--size-4-3);
+}
+
+.volcanic-radar-table {
+  border-collapse: separate;
+  border-spacing: var(--size-4-1);
+  width: 100%;
+}
+
+.volcanic-radar-table th {
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-normal);
+  color: var(--text-muted);
+  text-align: left;
+  vertical-align: bottom;
+}
+
+.volcanic-radar-table td,
+.volcanic-radar-table tbody th {
+  vertical-align: middle;
+}
+
+.volcanic-radar-table tbody th {
+  min-width: 130px;
+}
+
+.volcanic-radar-table thead th:not(:nth-child(2)) {
+  min-width: 140px;
+}
+
+.volcanic-radar-name,
+.volcanic-radar-value {
+  width: 100%;
+  min-width: 0;
+}
+
+.volcanic-radar-table select {
+  width: 100%;
+  margin-top: var(--size-4-1);
+}
+
+.volcanic-radar-value {
+  min-width: 70px;
+  font-variant-numeric: tabular-nums;
+}
+
+.volcanic-radar-series {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+}
+
+.volcanic-radar-move {
+  white-space: nowrap;
+}
+
+/* Icon-only buttons inside the grid; their names stay for screen readers. */
+.volcanic-radar-small {
+  padding: 0 var(--size-4-1);
+  min-width: 28px;
+  justify-content: center;
+}
+
+.volcanic-radar-small > span:not(.volcanic-icon) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.volcanic-radar-small[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.volcanic-radar-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.volcanic-radar-warning {
+  margin: var(--size-4-2) 0 0;
+  padding: var(--size-4-2) var(--size-4-3);
+  border: 2px solid var(--text-error);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--text-error) 14%, var(--background-primary));
+  font-weight: var(--font-semibold);
+  font-size: var(--font-ui-small);
+}
+
+.volcanic-radar-warning[hidden] {
+  display: none;
+}
+
+@media (forced-colors: active) {
+  .volcanic-radar-warning {
+    border-color: Highlight;
+  }
+}
+
+/* Quadrant chart editor */
+
+.volcanic-quad-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: var(--size-4-3);
+}
+
+.volcanic-quad-frame {
+  /* Room around the square for the axis labels. */
+  padding: 8px 8px 26px 28px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.volcanic-quad-plane {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background:
+    linear-gradient(var(--background-modifier-border), var(--background-modifier-border)) center / 1px 100% no-repeat,
+    linear-gradient(var(--background-modifier-border), var(--background-modifier-border)) center / 100% 1px no-repeat,
+    var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+}
+
+.volcanic-quad-name,
+.volcanic-quad-axis {
+  position: absolute;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  pointer-events: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.volcanic-quad-name {
+  font-weight: var(--font-semibold);
+  font-size: var(--font-ui-small);
+  opacity: 0.75;
+}
+
+.volcanic-quad-name.is-tr { top: 6px; right: 8px; }
+.volcanic-quad-name.is-tl { top: 6px; left: 8px; }
+.volcanic-quad-name.is-bl { bottom: 6px; left: 8px; }
+.volcanic-quad-name.is-br { bottom: 6px; right: 8px; }
+
+.volcanic-quad-axis.is-left { left: 0; top: 100%; margin-top: 6px; }
+.volcanic-quad-axis.is-right { right: 0; top: 100%; margin-top: 6px; }
+.volcanic-quad-axis.is-top,
+.volcanic-quad-axis.is-bottom {
+  left: -20px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  max-width: none;
+  max-height: 45%;
+}
+.volcanic-quad-axis.is-top { top: 0; }
+.volcanic-quad-axis.is-bottom { bottom: 0; }
+
+.volcanic-quad-dot {
+  position: absolute;
+  transform: translate(-6px, -6px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  height: 12px;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.volcanic-quad-dot-mark {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  /* The colour Pele gives its points, so the editor matches the finished chart. */
+  background: var(--pele-series-1, #4c78a8);
+  border: 2px solid var(--background-primary);
+  box-shadow: 0 0 0 1px var(--pele-series-1, #4c78a8);
+}
+
+.volcanic-quad-dot-label {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-normal);
+}
+
+.volcanic-quad-dot:focus-visible .volcanic-quad-dot-mark {
+  outline: 2px solid var(--text-normal);
+  outline-offset: 2px;
+}
+
+.volcanic-quad-dot.is-dragging {
+  cursor: grabbing;
+  z-index: 2;
+}
+
+.volcanic-quad-table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+  margin-top: var(--size-4-3);
+}
+
+.volcanic-quad-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) 72px 72px 32px;
+  gap: var(--size-4-2);
+  align-items: center;
+}
+
+.volcanic-quad-head {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+}
+
+.volcanic-quad-row .volcanic-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.volcanic-quad-remove {
+  padding-inline: 0;
+  justify-content: center;
+}
+
+.volcanic-quad-remove > span:not(.volcanic-icon) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+  .volcanic-quad-plane {
+    border-color: CanvasText;
+  }
+  .volcanic-quad-dot-mark {
+    background: Highlight;
+    border-color: Canvas;
+  }
+}
+
+/* Timeline editor */
+
+.volcanic-tl-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: var(--size-4-3);
+}
+
+.volcanic-tl-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-4);
+  max-width: 720px;
+}
+
+.volcanic-tl-section {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  padding: var(--size-4-2);
+  background: var(--background-primary);
+}
+
+.volcanic-tl-section-head,
+.volcanic-tl-period-head,
+.volcanic-tl-event {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+}
+
+.volcanic-tl-section-name,
+.volcanic-tl-period-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.volcanic-tl-section-name {
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-tl-event .volcanic-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.volcanic-tl-periods,
+.volcanic-tl-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.volcanic-tl-periods {
+  margin-top: var(--size-4-2);
+}
+
+.volcanic-tl-period {
+  border-left: 3px solid var(--interactive-accent);
+  padding: var(--size-4-1) 0 var(--size-4-1) var(--size-4-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.volcanic-tl-events {
+  gap: var(--size-4-1);
+  padding-left: var(--size-4-4);
+}
+
+.volcanic-tl-add {
+  align-self: flex-start;
+  margin-left: var(--size-4-4);
+}
+
+.volcanic-tl-small {
+  padding: 0 var(--size-4-1);
+  min-width: 28px;
+  justify-content: center;
+}
+
+.volcanic-tl-small > span:not(.volcanic-icon) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.volcanic-tl-small[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (forced-colors: active) {
+  .volcanic-tl-section {
+    border-color: CanvasText;
+  }
+  .volcanic-tl-period {
+    border-left-color: Highlight;
+  }
+}
+
+/* Kanban board editor */
+
+.volcanic-kb-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: var(--size-4-3);
+}
+
+.volcanic-kb-frame {
+  position: relative;
+  width: max-content;
+  min-width: 100%;
+}
+
+.volcanic-kb-board {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--size-4-3);
+}
+
+.volcanic-kb-column {
+  flex: 0 0 250px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  padding: var(--size-4-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.volcanic-kb-column-head,
+.volcanic-kb-card-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-1);
+}
+
+.volcanic-kb-column-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--font-semibold);
+}
+
+/* Each card has its text on a full-width line of its own, with the grip and buttons above it. */
+.volcanic-kb-card-row {
+  flex-wrap: wrap;
+}
+
+.volcanic-kb-card-text {
+  order: 2;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.volcanic-kb-card-row .volcanic-kb-small {
+  order: 1;
+}
+
+.volcanic-kb-card-row .volcanic-kb-grip {
+  order: 0;
+  margin-right: auto;
+}
+
+.volcanic-kb-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  min-height: 12px;
+}
+
+.volcanic-kb-card {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  padding: var(--size-4-1) var(--size-4-2);
+}
+
+.volcanic-kb-card.is-dragging {
+  opacity: 0.45;
+}
+
+.volcanic-kb-grip {
+  cursor: grab;
+  touch-action: none;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 0;
+  width: 18px;
+  height: 28px;
+}
+
+.volcanic-kb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-1);
+  margin: var(--size-4-1) 0 2px;
+}
+
+.volcanic-kb-chip {
+  font-size: var(--font-ui-smaller);
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--background-modifier-border);
+  color: var(--text-muted);
+}
+
+.volcanic-kb-chip.is-priority {
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+}
+
+.volcanic-kb-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  margin: var(--size-4-2) 0 var(--size-4-1);
+}
+
+.volcanic-kb-add {
+  align-self: flex-start;
+}
+
+.volcanic-kb-small {
+  padding: 0 var(--size-4-1);
+  min-width: 28px;
+  justify-content: center;
+}
+
+.volcanic-kb-small > span:not(.volcanic-icon) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.volcanic-kb-small[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.volcanic-kb-indicator {
+  position: absolute;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--interactive-accent);
+  pointer-events: none;
+}
+
+.volcanic-kb-indicator[hidden] {
+  display: none;
+}
+
+@media (forced-colors: active) {
+  .volcanic-kb-column,
+  .volcanic-kb-card {
+    border-color: CanvasText;
+  }
+  .volcanic-kb-indicator {
+    background: Highlight;
+  }
+}

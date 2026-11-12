@@ -1,0 +1,10 @@
+{
+  "id": "volcanic",
+  "name": "Volcanic",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Build Mermaid diagrams visually with an accessible drag-and-drop editor and a live preview rendered by Pele.",
+  "author": "kenroy",
+  "authorUrl": "https://github.com/kenroy",
+  "isDesktopOnly": false
+}
