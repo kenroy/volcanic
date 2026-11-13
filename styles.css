@@ -2036,45 +2036,7 @@ body.volcanic-is-dragging .tooltip {
 
 /* ── Responsive diagrams ───────────────────────────────────────── */
 
-[data-volcanic-fit] .mermaid > svg,
-[data-volcanic-fit] .volcanic-diagram-host > svg,
-[data-volcanic-fit] svg.pele {
-  width: 100% !important;
-  /* Never more than 1.6 times the size Pele drew it at. */
-  max-width: min(100%, calc(var(--volcanic-natural, 100000) * 1.6px)) !important;
-  height: auto !important;
-}
-
-[data-volcanic-fit] .mermaid > svg[data-volcanic-round],
-[data-volcanic-fit] .volcanic-diagram-host > svg[data-volcanic-round],
-[data-volcanic-fit] svg.pele[data-volcanic-round] {
-  /* A pie stays near its drawn size (about 400px wide) however wide the note is. */
-  max-width: min(100%, calc(var(--volcanic-natural, 400) * 1.25px)) !important;
-  max-height: 460px !important;
-}
-
-/* A radar chart is round too, and taller than it is wide, so it keeps its drawn size instead of a height limit. */
-[data-volcanic-fit] .mermaid > svg.pele-radar[data-volcanic-round],
-[data-volcanic-fit] .volcanic-diagram-host > svg.pele-radar[data-volcanic-round],
-[data-volcanic-fit] svg.pele-radar[data-volcanic-round] {
-  max-width: min(100%, calc(var(--volcanic-natural, 305) * 1.3px)) !important;
-  max-height: none !important;
-}
-
-/* A pie never grows with the page, whatever else has or has not been applied to it (not inside an open editor). */
-:is(.markdown-rendered, .cm-lang-mermaid, .volcanic-diagram) svg.pele-pie:not(.volcanic-inline-host *) {
-  width: 100% !important;
-  height: auto !important;
-  max-width: min(100%, max(520px, calc(var(--volcanic-natural, 0) * 1.25px))) !important;
-  max-height: none !important;
-}
-
-:is(.markdown-rendered, .cm-lang-mermaid, .volcanic-diagram) svg.pele-radar:not(.volcanic-inline-host *) {
-  width: 100% !important;
-  height: auto !important;
-  max-width: min(100%, max(380px, calc(var(--volcanic-natural, 0) * 1.3px))) !important;
-  max-height: none !important;
-}
+/* How far each picture grows is set in code (applyFit in main.ts). */
 
 /* ── Assignee and percent complete in the Gantt editor ─────────── */
 

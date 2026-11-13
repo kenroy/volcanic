@@ -200,6 +200,7 @@ export default class VolcanicPlugin extends Plugin {
   /** What was just saved from an editor, until the note's text catches up. Obsidian can redraw before it has. */
   private readonly justSaved = new WeakMap<HTMLElement, { text: string; at: number }>();
   private readonly redraws = new WeakMap<HTMLElement, () => void>();
+  private readonly fitWatchers = new WeakMap<SVGSVGElement, MutationObserver>();
 
   async onload(): Promise<void> {
     this.settings = { ...DEFAULT_SETTINGS, ...((await this.loadData()) as Partial<VolcanicSettings> | null) };
@@ -463,23 +464,45 @@ export default class VolcanicPlugin extends Plugin {
     this.attachEditButton(el, ctx);
   }
 
-  /** Let the picture grow and shrink with the note's width (up to a limit, so text never gets huge). */
+  /**
+   * Let the picture grow and shrink with the note's width (up to a limit, so text never gets huge).
+   * The sizes go on the picture itself as important inline values, because both Pele and Obsidian's own
+   * styles set theirs with `!important` or inline, and nothing in a style sheet could win against that.
+   */
   private applyFit(el: HTMLElement): void {
     const svg = el.querySelector<SVGSVGElement>('.mermaid > svg, .volcanic-diagram-host > svg, svg.pele');
-    if (!this.settings.fitWidth) {
-      if (el.hasAttribute('data-volcanic-fit')) el.removeAttribute('data-volcanic-fit');
-      return;
-    }
-    if (!el.hasAttribute('data-volcanic-fit')) el.setAttribute('data-volcanic-fit', '');
-    const box = (svg?.getAttribute('viewBox') ?? '').split(/[\s,]+/);
-    const width = Number(box[2]);
-    const height = Number(box[3]);
-    if (!svg) return;
-    if (Number.isFinite(width) && width > 0 && svg.style.getPropertyValue('--volcanic-natural') !== String(width)) svg.style.setProperty('--volcanic-natural', String(width));
-    if (Number.isFinite(height) && height > 0 && svg.style.getPropertyValue('--volcanic-natural-h') !== String(height)) svg.style.setProperty('--volcanic-natural-h', String(height));
+    const fit = this.settings.fitWidth;
+    if (fit !== el.hasAttribute('data-volcanic-fit')) el.toggleAttribute('data-volcanic-fit', fit);
+    // The picture inside an open editor is sized by the editor.
+    if (!svg || svg.closest('.volcanic-inline-host')) return;
+    const box = (svg.getAttribute('viewBox') ?? '').split(/[\s,]+/);
+    const natural = Number(box[2]);
+    const known = Number.isFinite(natural) && natural > 0;
     // A pie or radar chart is round, so growing it with the page makes it huge: keep it close to its drawn size.
-    const round = !!svg.querySelector('.pele-slice') || svg.classList.contains('pele-radar');
-    if (round !== svg.hasAttribute('data-volcanic-round')) svg.toggleAttribute('data-volcanic-round', round);
+    const pie = svg.classList.contains('pele-pie');
+    const radar = svg.classList.contains('pele-radar');
+    const round = !!svg.querySelector('.pele-slice') || radar;
+    if (fit && round !== svg.hasAttribute('data-volcanic-round')) svg.toggleAttribute('data-volcanic-round', round);
+
+    let sizes: Record<string, string> | null = null;
+    if (pie) sizes = { 'max-width': `min(100%, max(520px, ${(known ? natural : 0) * 1.25}px))`, 'max-height': 'none' };
+    else if (radar) sizes = { 'max-width': `min(100%, max(380px, ${(known ? natural : 0) * 1.3}px))`, 'max-height': 'none' };
+    else if (fit && round) sizes = { 'max-width': `min(100%, ${(known ? natural : 400) * 1.25}px)`, 'max-height': '460px' };
+    // Never more than 1.6 times the size Pele drew it at.
+    else if (fit) sizes = { 'max-width': `min(100%, ${(known ? natural : 100000) * 1.6}px)` };
+    if (!sizes) return;
+    for (const [name, value] of Object.entries({ width: '100%', height: 'auto', ...sizes })) {
+      if (svg.style.getPropertyValue(name) !== value || svg.style.getPropertyPriority(name) !== 'important') svg.style.setProperty(name, value, 'important');
+    }
+    // Pele rewrites the picture's style when it draws again, so put the sizes back whenever that happens.
+    if (!this.fitWatchers.has(svg)) {
+      const watcher = new MutationObserver(() => {
+        if (svg.isConnected) this.applyFit(el);
+        else watcher.disconnect();
+      });
+      watcher.observe(svg, { attributes: true, attributeFilter: ['style'] });
+      this.fitWatchers.set(svg, watcher);
+    }
   }
 
   /**
