@@ -461,7 +461,6 @@ export default class VolcanicPlugin extends Plugin {
     this.applyTheme(el, source);
     this.applyFit(el);
     this.attachEditButton(el, ctx);
-    host.addEventListener('dblclick', () => void this.editRendered(el, ctx));
   }
 
   /** Let the picture grow and shrink with the note's width (up to a limit, so text never gets huge). */
@@ -690,6 +689,21 @@ export default class VolcanicPlugin extends Plugin {
     addTool('Edit source', 'code', () => void this.editRendered(el, ctx, true));
     addTool('Write below', 'corner-down-left', () => void this.addLineBelow(el, ctx));
     el.addClass('volcanic-has-edit');
+
+    // Double-click opens the editor. Live Preview reacts to the first click before the browser reports the second, so catch it on the mouse press.
+    let lastOpened = 0;
+    const open = (): void => {
+      if (Date.now() - lastOpened < 600) return;
+      lastOpened = Date.now();
+      void this.editRendered(el, ctx);
+    };
+    el.addEventListener('mousedown', (event) => {
+      if (event.button !== 0 || event.detail < 2) return;
+      event.preventDefault();
+      event.stopPropagation();
+      open();
+    });
+    el.addEventListener('dblclick', open);
 
     // Right-click (or the keyboard's context-menu key) on the diagram itself.
     el.addEventListener('contextmenu', (event) => {
