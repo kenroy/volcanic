@@ -4178,3 +4178,60 @@ body.theme-dark {
     inset: -16px -10px;
   }
 }
+
+/* ── Preview drawer (narrow editors) ─────────────────────────────────────────────── */
+
+.volcanic-editor .volcanic-preview-toggle,
+.volcanic-editor .volcanic-drawer-head {
+  display: none;
+}
+
+.volcanic-editor.is-narrow .volcanic-preview-toggle {
+  display: inline-flex;
+}
+
+.volcanic-editor.is-narrow .volcanic-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+  padding: var(--size-4-1) var(--size-4-2);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.volcanic-editor.is-narrow .volcanic-output {
+  position: absolute;
+  inset-block: 0 var(--volcanic-footer-h, 60px);
+  inset-inline-end: 0;
+  z-index: 20;
+  width: min(94%, 460px);
+  min-height: 0;
+  border-radius: var(--radius-l) 0 0 var(--radius-l);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform 220ms ease, visibility 0s linear 220ms;
+}
+
+.volcanic-editor.is-narrow.is-preview-open .volcanic-output {
+  transform: none;
+  visibility: visible;
+  transition: transform 220ms ease;
+}
+
+.volcanic-editor.is-narrow .volcanic-output .volcanic-panel {
+  flex: 1;
+  max-height: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .volcanic-editor.is-narrow .volcanic-output,
+  .volcanic-editor.is-narrow.is-preview-open .volcanic-output,
+  .volcanic-editor.no-motion .volcanic-output {
+    transition: none;
+  }
+}
+
+.volcanic-editor.no-motion.is-narrow .volcanic-output {
+  transition: none;
+}

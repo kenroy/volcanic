@@ -196,6 +196,7 @@ export class DiagramEditor {
   private mounted: Mounted | null = null;
   private previewTimer = 0;
   private resizeObserver: ResizeObserver | null = null;
+  private layoutObserver: ResizeObserver | null = null;
   private suppressClick = false;
 
   // Elements
@@ -234,6 +235,11 @@ export class DiagramEditor {
   private fontSize = 0;
   private fontSelect!: HTMLSelectElement;
   private previewPanel!: HTMLElement;
+  private outputCard!: HTMLElement;
+  private previewToggle!: HTMLButtonElement;
+  private previewClose!: HTMLButtonElement;
+  private previewOpen = false;
+  private narrow = false;
   private themePicker!: SwatchSelect;
   private themeHint!: HTMLElement;
   private kind: Kind = 'flowchart';
@@ -484,6 +490,7 @@ export class DiagramEditor {
   destroy(): void {
     window.clearTimeout(this.previewTimer);
     this.resizeObserver?.disconnect();
+    this.layoutObserver?.disconnect();
     this.mounted?.destroy();
     this.root.remove();
   }
@@ -499,6 +506,43 @@ export class DiagramEditor {
       if (this.mode === 'visual') this.drawEdges();
     });
     this.resizeObserver.observe(this.wrap);
+
+    this.layoutObserver = new ResizeObserver(() => this.syncNarrow());
+    this.layoutObserver.observe(this.root);
+    this.syncNarrow();
+  }
+
+  /** On a phone the result slides in from the side instead of sitting below the lists. */
+  private syncNarrow(): void {
+    const narrow = this.root.clientWidth > 0 && this.root.clientWidth <= 640;
+    if (narrow !== this.narrow) {
+      this.narrow = narrow;
+      // Resizing is not an animation: only opening and closing slide.
+      this.root.classList.add('no-motion');
+      this.root.classList.toggle('is-narrow', narrow);
+      window.setTimeout(() => this.root.classList.remove('no-motion'), 50);
+      if (!narrow) this.previewOpen = false;
+      this.applyPreviewDrawer();
+    }
+    const footer = this.root.querySelector<HTMLElement>('.volcanic-footer');
+    if (footer) this.root.style.setProperty('--volcanic-footer-h', `${footer.offsetHeight}px`);
+  }
+
+  private setPreviewOpen(open: boolean, focus = true): void {
+    if (this.previewOpen === open) return;
+    this.previewOpen = open;
+    this.applyPreviewDrawer();
+    if (!focus) return;
+    if (open) this.previewClose.focus();
+    else this.previewToggle.focus();
+    this.announce(open ? 'Preview open.' : 'Preview closed.');
+  }
+
+  private applyPreviewDrawer(): void {
+    const hiddenAway = this.narrow && !this.previewOpen;
+    this.root.classList.toggle('is-preview-open', this.narrow && this.previewOpen);
+    this.outputCard.toggleAttribute('inert', hiddenAway);
+    this.previewToggle.setAttribute('aria-expanded', String(this.narrow && this.previewOpen));
   }
 
   private iconButton(label: string, icon: string, onClick: () => void, extraClass = ''): HTMLButtonElement {
@@ -873,7 +917,10 @@ export class DiagramEditor {
       { id: 'preview', name: 'Preview', panel: previewPanel },
       { id: 'source', name: 'Mermaid', panel: codePanel },
     ]);
-    const output = h('section', { class: 'volcanic-card volcanic-output', attrs: { 'aria-label': 'Result rendered by Pele' } }, this.outputTabs.list, previewPanel, codePanel);
+    this.previewClose = this.iconButton('Close', 'x', () => this.setPreviewOpen(false));
+    const drawerHead = h('div', { class: 'volcanic-drawer-head' }, h('span', { class: 'volcanic-section-title', text: 'Result' }), this.previewClose);
+    const output = h('section', { class: 'volcanic-card volcanic-output', attrs: { id: `${this.uid}-output`, 'aria-label': 'Result rendered by Pele' } }, drawerHead, this.outputTabs.list, previewPanel, codePanel);
+    this.outputCard = output;
 
     // Properties + outline
     this.inspector = h('div', { class: 'volcanic-panel volcanic-inspector' });
@@ -893,7 +940,8 @@ export class DiagramEditor {
     this.status = h('div', { class: 'volcanic-status', attrs: { role: 'status', 'aria-live': 'polite' } });
     const cancel = h('button', { class: 'volcanic-button', text: 'Cancel', attrs: { type: 'button' }, on: { click: () => this.host.onCancel() } });
     const submit = h('button', { class: 'mod-cta volcanic-button', text: this.host.submitLabel, attrs: { type: 'button' }, on: { click: () => this.submit() } });
-    return h('div', { class: 'volcanic-footer' }, this.status, h('div', { class: 'volcanic-footer-actions' }, cancel, submit));
+    this.previewToggle = h('button', { class: 'volcanic-button volcanic-preview-toggle', text: 'Preview', attrs: { type: 'button', 'aria-expanded': 'false', 'aria-controls': `${this.uid}-output` }, on: { click: () => this.setPreviewOpen(!this.previewOpen) } });
+    return h('div', { class: 'volcanic-footer' }, this.status, h('div', { class: 'volcanic-footer-actions' }, this.previewToggle, cancel, submit));
   }
 
   private marker(name: string, selected: boolean): SVGMarkerElement {
@@ -1638,6 +1686,12 @@ export class DiagramEditor {
     if (mod && event.key === 'Enter') {
       event.preventDefault();
       this.submit();
+      return;
+    }
+    if (event.key === 'Escape' && this.narrow && this.previewOpen) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.setPreviewOpen(false);
       return;
     }
     if (event.key === 'Escape' && this.cancelTransient()) {
