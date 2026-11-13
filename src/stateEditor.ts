@@ -158,7 +158,7 @@ export class StateEditor implements KindEditor {
     const el = this.el.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-key="${key}"]`);
     if (!el) return false;
     el.focus();
-    if (select && el instanceof HTMLInputElement) el.select();
+    if (select && el?.instanceOf(HTMLInputElement)) el.select();
     return true;
   }
 
@@ -246,7 +246,7 @@ export class StateEditor implements KindEditor {
 
   private renderAll(): void {
     const active = document.activeElement;
-    const inside = active instanceof HTMLElement && this.el.contains(active);
+    const inside = active?.instanceOf(HTMLElement) && this.el.contains(active);
     const keep = inside ? active.dataset.key : undefined;
     const keepAct = inside && !keep ? active.dataset.act : undefined;
     this.renderStates();
@@ -378,7 +378,7 @@ export class StateEditor implements KindEditor {
     });
     // Typing in a state name rebuilds the pickers, so keep the one that has focus.
     const active = document.activeElement;
-    const keep = active instanceof HTMLElement && this.transList.contains(active) ? active.dataset.key : undefined;
+    const keep = active?.instanceOf(HTMLElement) && this.transList.contains(active) ? active.dataset.key : undefined;
     this.transList.replaceChildren(...(rows.length ? [head, ...rows] : []));
     if (!rows.length) this.transList.append(h('p', { class: 'volcanic-hint', text: 'No transitions yet. Add one with the Add transition button.' }));
     if (keep) this.transList.querySelector<HTMLElement>(`[data-key="${keep}"]`)?.focus();

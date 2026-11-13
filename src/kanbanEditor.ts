@@ -220,7 +220,7 @@ export class KanbanEditor implements KindEditor {
 
   private renderAll(): void {
     const active = document.activeElement;
-    const inside = active instanceof HTMLElement && this.board.contains(active);
+    const inside = active?.instanceOf(HTMLElement) && this.board.contains(active);
     const keep = inside ? active.dataset.key : undefined;
     const keepAct = inside && !keep ? active.dataset.act : undefined;
     this.renderBoard();
@@ -283,7 +283,7 @@ export class KanbanEditor implements KindEditor {
       class: 'volcanic-kb-grip',
       attrs: { type: 'button', 'aria-label': `Move ${this.cardName(card)}. Drag, or use Alt with the arrow keys.` },
       text: '⠿',
-      on: { pointerdown: (event) => this.onPointerDown(event as PointerEvent, card.id) },
+      on: { pointerdown: (event) => this.onPointerDown(event, card.id) },
     });
     const text = this.textInput(card.text, key, `Card ${index + 1} in ${this.columnName(column)}`, (v) => (card.text = v), 'volcanic-kb-card-text');
     const expanded = this.open.has(card.id);

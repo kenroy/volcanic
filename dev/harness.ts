@@ -1,6 +1,6 @@
 // Browser-only test page: mounts the editor without Obsidian.
+import './obsidian-shim.js';
 import { DiagramEditor } from '../src/editor';
-import { themeCss } from '../src/themes';
 import { resizeHandle } from '../src/ui';
 import { mount } from 'pele';
 import { readDescription } from '../src/kinds';
@@ -25,7 +25,7 @@ const samples: Record<string, string> = {
   architecture: '---\ntitle: "Web app"\n---\narchitecture-beta\n    accTitle: Web app\n    accDescr: A browser talks to an API that stores data in a database and a disk.\n    group api(cloud)[API]\n    service db(database)[Database] in api\n    service disk(disk)[Storage] in api\n    service server(server)[Server] in api\n    service browser(internet)[Browser]\n    junction fork in api\n    browser:R -- L:server\n    server:B -- T:fork\n    fork:L --> R:db\n    fork:R --> L:disk',
   block: '---\ntitle: "Web request"\n---\nblock-beta\n    columns 3\n    browser["Browser"] space server("Server")\n    db[("Database")]:3\n    browser -- "request" --> server\n    server --> db',
   git: '---\ntitle: "Release flow"\n---\ngitGraph\n    accTitle: Release flow\n    accDescr: A feature branch is merged into main and tagged.\n    commit id: "Start"\n    commit\n    branch develop\n    commit id: "Feature" type: HIGHLIGHT\n    checkout main\n    merge develop tag: "v1.0"\n    commit',
-  requirement: '---\ntitle: "Login"\n---\nrequirementDiagram\n    accTitle: Login\n    accDescr: A login requirement, satisfied by a form and verified by a test.\n    requirement login_works {\n        id: \"REQ-1\"\n        text: "Users can sign in with an email: and a password."\n        risk: high\n        verifymethod: test\n    }\n    functionalRequirement lockout {\n        id: \"REQ-1.1\"\n        text: "Lock the account after five failed tries."\n        risk: medium\n        verifymethod: demonstration\n    }\n    element login_form {\n        type: module\n        docref: "specs/login.md"\n    }\n    element login_tests {\n        type: "test suite"\n    }\n    login_works - contains -> lockout\n    login_form - satisfies -> login_works\n    login_tests - verifies -> login_works',
+  requirement: '---\ntitle: "Login"\n---\nrequirementDiagram\n    accTitle: Login\n    accDescr: A login requirement, satisfied by a form and verified by a test.\n    requirement login_works {\n        id: "REQ-1"\n        text: "Users can sign in with an email: and a password."\n        risk: high\n        verifymethod: test\n    }\n    functionalRequirement lockout {\n        id: "REQ-1.1"\n        text: "Lock the account after five failed tries."\n        risk: medium\n        verifymethod: demonstration\n    }\n    element login_form {\n        type: module\n        docref: "specs/login.md"\n    }\n    element login_tests {\n        type: "test suite"\n    }\n    login_works - contains -> lockout\n    login_form - satisfies -> login_works\n    login_tests - verifies -> login_works',
   c4: '---\ntitle: "Internet banking"\n---\nC4Context\n    accTitle: Internet banking\n    accDescr: Customers use the banking system, which relies on an email system.\n    Person(customer, "Customer", "A customer of the bank")\n    System_Ext(mail, "E-mail system", "Sends messages")\n    Enterprise_Boundary(bank, "Bank") {\n        System(banking, "Banking system", "Lets customers view accounts")\n        SystemDb(store, "Account store")\n    }\n    Rel(customer, banking, "Uses", "HTTPS")\n    Rel(banking, store, "Reads and writes")\n    Rel_D(banking, mail, "Sends e-mail using")',
   packet: '---\ntitle: "TCP header"\n---\npacket-beta\n    accDescr: The first fields of a TCP segment.\n    0-15: "Source port"\n    16-31: "Destination port"\n    32-63: "Sequence number"\n    64-95: "Acknowledgment number"',
   treemap: '---\ntitle: "Company"\n---\ntreemap-beta\n    accDescr: Where the people are.\n"Company"\n  "Engineering": 40\n  "Sales"\n    "Europe": 10\n    "Americas": 15\n  "Support": 15',
@@ -42,7 +42,6 @@ const samples: Record<string, string> = {
   labelsTd: 'flowchart TD\n A([Start]) --> B{Is it working?}\n B -->|Yes| C[Ship it]\n B -->|No| D[(Check logs)]\n D -.->|Try again| B',
 };
 const source = samples[params.get('sample') ?? ''] ?? null;
-document.head.append(Object.assign(document.createElement('style'), { textContent: themeCss() }));
 if (params.get('theme') === 'dark') document.body.classList.add('theme-dark');
 
 const output = document.getElementById('output')!;
@@ -51,12 +50,10 @@ const mountEditor = (): void => {
   outer.replaceChildren();
   // ?inline=1 mimics the editor sitting inside a narrow note column.
   const inline = params.get('inline') === '1';
-  const host = inline ? document.createElement('div') : outer;
+  const host = inline ? createDiv({ cls: 'volcanic-inline-host harness-inline' }) : outer;
   if (inline) {
-    outer.style.cssText = 'display:block;padding:20px;overflow:auto;background:var(--background-primary)';
-    host.className = 'volcanic-inline-host';
-    host.style.width = params.get('w') ? `${params.get('w')}px` : '720px';
-    host.style.margin = '0 auto';
+    outer.classList.add('harness-inline-outer');
+    host.style.setProperty('--harness-width', params.get('w') ? `${params.get('w')}px` : '720px');
     outer.append(host);
     const grip = resizeHandle(host, { min: 480, max: () => Math.max(600, window.innerHeight * 3), storageKey: 'volcanic-inline-height-harness' });
     host.after(grip);
@@ -65,13 +62,7 @@ const mountEditor = (): void => {
     host,
     {
       setIcon: (el, name) => {
-        void fetch(`https://unpkg.com/lucide-static@0.460.0/icons/${name}.svg`)
-          .then((r) => (r.ok ? r.text() : ''))
-          .then((svg) => {
-            const doc = new DOMParser().parseFromString(svg, 'image/svg+xml');
-            if (doc.documentElement.nodeName === 'svg') el.replaceChildren(doc.documentElement);
-          })
-          .catch(() => undefined);
+        el.replaceChildren(createEl('img', { attr: { src: `https://unpkg.com/lucide-static@0.460.0/icons/${name}.svg`, alt: '' } }));
       },
       labelsBesideLines: true,
       inline,
@@ -87,11 +78,9 @@ mountEditor();
 
 // ?notes=1 also draws the chart the way a note shows it, with its legend.
 if (params.get('notes') === '1' && source) {
-  const holder = document.createElement('div');
-  holder.id = 'notes-view';
-  holder.style.cssText = 'padding:16px;max-width:760px;margin:0 auto;background:var(--background-primary)';
+  const holder = createDiv({ cls: 'harness-notes', attr: { id: 'notes-view' } });
   document.body.append(holder);
-  const host = document.createElement('div');
+  const host = createDiv();
   holder.append(host);
   const finish = (): void => {
     setTaskDetails(host, source, true);

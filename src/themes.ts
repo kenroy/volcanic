@@ -397,21 +397,21 @@ export function swatchColours(theme: Theme | undefined, dark: boolean): string[]
   return ['var(--interactive-accent)', 'var(--text-normal)', 'var(--text-muted)', 'var(--background-modifier-border)', 'var(--background-secondary)'];
 }
 
+/** The colours a theme sets, as plain variables. One shared rule below hands them to Pele, so `!important` appears once and not once per colour. */
 function declarations(c: ThemeColours): string {
   const rows = [
-    `--pele-accent: ${c.accent}`,
-    `--pele-surface: ${c.surface}`,
-    `--pele-surface-alt: ${c.surfaceAlt}`,
-    `--pele-border: ${c.border}`,
-    `--pele-line: ${c.line}`,
-    `--pele-critical: ${c.critical}`,
+    `--volcanic-t-accent: ${c.accent}`,
+    `--volcanic-t-surface: ${c.surface}`,
+    `--volcanic-t-surface-alt: ${c.surfaceAlt}`,
+    `--volcanic-t-border: ${c.border}`,
+    `--volcanic-t-line: ${c.line}`,
+    `--volcanic-t-critical: ${c.critical}`,
     // Black or white lettering on filled shapes: one of the two always reaches 4.5:1.
-    '--pele-fg-on-light: #000000',
-    '--pele-fg-on-dark: #ffffff',
-    ...c.series.map((colour, index) => `--pele-series-${index + 1}: ${colour}`),
+    '--volcanic-t-fg-on-light: #000000',
+    '--volcanic-t-fg-on-dark: #ffffff',
+    ...c.series.map((colour, index) => `--volcanic-t-series-${index + 1}: ${colour}`),
   ];
-  // !important, because Obsidian's own renderer may set these variables on an element inside the diagram.
-  return rows.map((row) => `  ${row} !important;`).join('\n');
+  return rows.map((row) => `  ${row};`).join('\n');
 }
 
 /** The CSS for every theme. Obsidian marks dark mode with `.theme-dark` on the body. */
@@ -423,9 +423,22 @@ export function themeCss(): string {
     out.push(`[data-volcanic-theme="${theme.id}"][data-volcanic-theme] {\n${declarations(theme.light)}\n}`);
     out.push(`.theme-dark [data-volcanic-theme="${theme.id}"][data-volcanic-theme] {\n${declarations(theme.dark)}\n}`);
   }
-  // For an editor whose theme has no colours of its own: forget any theme set on the note around it.
-  const forget = [...Array.from({ length: 8 }, (_, i) => `--pele-series-${i + 1}`), '--pele-critical', '--pele-fg-on-light', '--pele-fg-on-dark'];
-  out.push(`[${NO_THEME_ATTR}][${NO_THEME_ATTR}] {\n${forget.map((name) => `  ${name}: initial !important;`).join('\n')}\n}`);
+  // Hand the chosen colours to Pele. !important, because Obsidian's own renderer may set these variables on an element inside the diagram.
+  // An editor whose theme has no colours of its own has none of the variables above, so each one falls back to `initial` and forgets any theme set on the note around it.
+  const handOver = [
+    ['accent', 'accent'],
+    ['surface', 'surface'],
+    ['surface-alt', 'surface-alt'],
+    ['border', 'border'],
+    ['line', 'line'],
+    ['critical', 'critical'],
+    ['fg-on-light', 'fg-on-light'],
+    ['fg-on-dark', 'fg-on-dark'],
+    ...Array.from({ length: 8 }, (_, i) => [`series-${i + 1}`, `series-${i + 1}`]),
+  ].map(([pele, mine]) => `  --pele-${pele}: var(--volcanic-t-${mine}, initial) !important;`);
+  const mineNames = handOver.map((row) => /var\((--volcanic-t-[\w-]+)/.exec(row)![1]);
+  out.push(`[${NO_THEME_ATTR}][${NO_THEME_ATTR}] {\n${mineNames.map((name) => `  ${name}: initial;`).join('\n')}\n}`);
+  out.push(`[data-volcanic-theme][data-volcanic-theme],\n[${NO_THEME_ATTR}][${NO_THEME_ATTR}] {\n${handOver.join('\n')}\n}`);
   return out.join('\n');
 }
 

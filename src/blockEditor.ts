@@ -154,7 +154,7 @@ export class BlockEditor implements KindEditor {
     const el = this.el.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-key="${key}"]`);
     if (!el) return false;
     el.focus();
-    if (select && el instanceof HTMLInputElement) el.select();
+    if (select && el?.instanceOf(HTMLInputElement)) el.select();
     return true;
   }
 
@@ -225,7 +225,7 @@ export class BlockEditor implements KindEditor {
 
   private renderAll(): void {
     const active = document.activeElement;
-    const inside = active instanceof HTMLElement && this.el.contains(active);
+    const inside = active?.instanceOf(HTMLElement) && this.el.contains(active);
     const keep = inside ? active.dataset.key : undefined;
     const keepAct = inside && !keep ? active.dataset.act : undefined;
     this.renderBlocks();
@@ -361,7 +361,7 @@ export class BlockEditor implements KindEditor {
     const { links } = this.d;
     const choices = this.choices();
     const active = document.activeElement;
-    const keep = active instanceof HTMLElement && this.linkList.contains(active) ? active.dataset.key : undefined;
+    const keep = active?.instanceOf(HTMLElement) && this.linkList.contains(active) ? active.dataset.key : undefined;
     const rows = links.map((l, index) => {
       const n = `link ${index + 1}`;
       const end = (id: string): string => (choices.some((o) => o.id === id) ? id : (choices[0]?.id ?? ''));

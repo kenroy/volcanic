@@ -1,9 +1,9 @@
-import { App, Component, Editor, MarkdownPostProcessorContext, MarkdownRenderChild, MarkdownView, Menu, Modal, Notice, Plugin, PluginSettingTab, Setting, SettingGroup, TFile, setIcon } from 'obsidian';
-import * as obsidianModule from 'obsidian';
+import { App, Component, Editor, MarkdownPostProcessorContext, MarkdownRenderChild, MarkdownView, Menu, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, setIcon, type SettingDefinitionItem } from 'obsidian';
 import { detectType, mount, type Mounted } from 'pele';
 import { DiagramEditor } from './editor';
+import { useLocalStore } from './store';
 import { readFontSize, readTheme, readTitle, readTitleAlign, stripMeta, TEXT_SIZES } from './mermaid';
-import { DEFAULT_THEME_ID, THEMES, themeCss } from './themes';
+import { DEFAULT_THEME_ID, THEMES } from './themes';
 import { resizeHandle } from './ui';
 import { readDescription } from './kinds';
 import { alignTitle } from './title';
@@ -95,7 +95,7 @@ class DiagramModal extends Modal {
   }
 
   onOpen(): void {
-    this.returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    this.returnFocus = document.activeElement?.instanceOf(HTMLElement) ? document.activeElement : null;
     const titleId = 'volcanic-modal-title';
     this.modalEl.addClass('volcanic-modal');
     this.modalEl.setAttribute('role', 'dialog');
@@ -203,11 +203,9 @@ export default class VolcanicPlugin extends Plugin {
 
   async onload(): Promise<void> {
     this.settings = { ...DEFAULT_SETTINGS, ...((await this.loadData()) as Partial<VolcanicSettings> | null) };
+    useLocalStore({ load: (key) => this.app.loadLocalStorage(key) as unknown, save: (key, value) => this.app.saveLocalStorage(key, value) });
     this.addSettingTab(new VolcanicSettingTab(this.app, this));
-    // Colour themes: one rule set per theme, switched on by a data attribute on each diagram.
-    const style = document.head.createEl('style', { attr: { 'data-volcanic-themes': '' } });
-    style.textContent = themeCss();
-    this.register(() => style.remove());
+    // Colour themes: one rule set per theme, in styles.css, switched on by a data attribute on each diagram.
 
     if (this.settings.renderInNotes) {
       try {
@@ -564,7 +562,7 @@ export default class VolcanicPlugin extends Plugin {
 
   private watchLivePreview(): void {
     const scan = (node: Node): void => {
-      if (!(node instanceof HTMLElement)) return;
+      if (!(node?.instanceOf(HTMLElement))) return;
       const found = node.matches('.cm-lang-mermaid') ? [node] : Array.from(node.querySelectorAll<HTMLElement>('.cm-lang-mermaid'));
       for (const el of found) this.adoptWidget(el, 0);
     };
@@ -942,63 +940,66 @@ export default class VolcanicPlugin extends Plugin {
   }
 }
 
+type BooleanKey = { [K in keyof VolcanicSettings]: VolcanicSettings[K] extends boolean ? K : never }[keyof VolcanicSettings];
+
+/** One row of the settings page. Newer Obsidian draws these itself; older versions get the same rows from display(). */
+type SettingRow =
+  | { kind: 'toggle'; key: BooleanKey; name: string; desc: string }
+  | { kind: 'dropdown'; key: 'defaultTheme' | 'textSize'; name: string; desc: string; options: Record<string, string> };
+
 class VolcanicSettingTab extends PluginSettingTab {
   constructor(app: App, private readonly plugin: VolcanicPlugin) {
     super(app, plugin);
   }
 
+  private rows(): SettingRow[] {
+    const themes: Record<string, string> = { [DEFAULT_THEME_ID]: 'Match Obsidian' };
+    for (const theme of THEMES) if (theme.light) themes[theme.id] = theme.name;
+    const sizes: Record<string, string> = {};
+    for (const size of TEXT_SIZES) sizes[size.id] = size.id ? size.name : 'Default (16)';
+    return [
+      { kind: 'dropdown', key: 'defaultTheme', name: 'Default colour theme', desc: 'The colours for diagrams that have not chosen a theme of their own. You can pick a different theme for any diagram in its editor. Reopen a note to see the change.', options: themes },
+      { kind: 'toggle', key: 'renderInNotes', name: 'Draw diagrams in notes with Pele', desc: 'Uses the bundled Pele renderer for every mermaid block, so notes match the editor preview. Turn off to use Obsidian\u2019s own renderer. Takes effect after reloading Obsidian or re-enabling the plugin.' },
+      { kind: 'toggle', key: 'editInPlace', name: 'Edit diagrams inside the note', desc: 'Opens the editor in place of the diagram, in Live Preview and Reading view, instead of in a pop-up window. Source mode and some situations still use the pop-up window.' },
+      { kind: 'dropdown', key: 'textSize', name: 'Diagram text size', desc: 'The text size for diagrams that have not chosen one of their own. Pele\u2019s own size is 16. You can pick a different size for any diagram in its editor. Reopen a note to see the change.', options: sizes },
+      { kind: 'toggle', key: 'fitWidth', name: 'Fit diagrams to the note width', desc: 'Scales each diagram up or down to match the width of the note or pane, so it reads well on wide screens and in narrow side panes. Turn off to keep every diagram at its drawn size. Reopen a note to see the change.' },
+      { kind: 'toggle', key: 'showTaskDetails', name: 'Show assignee, status and progress on Gantt tasks', desc: 'Draws who a task is assigned to, its status and its percent complete beside each bar, and fills the bar to show progress. Reopen a note to see the change.' },
+      { kind: 'toggle', key: 'showDescription', name: 'Show descriptions under diagrams', desc: 'Shows the description you give a diagram as a caption below it. Screen readers read the description either way. Reopen a note to see the change.' },
+      { kind: 'toggle', key: 'labelsBesideLines', name: 'Put connection labels beside their lines', desc: 'Moves the text on a connection off the line: above or below a line that runs across, left or right of one that runs up and down. Turn off to keep labels on the line. Reopen a note to see the change.' },
+    ];
+  }
+
+  /** Obsidian 1.13 and later draw the page from these, and index them for settings search. */
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    return this.rows().map((row) =>
+      row.kind === 'toggle'
+        ? { name: row.name, desc: row.desc, control: { type: 'toggle', key: row.key } }
+        : { name: row.name, desc: row.desc, control: { type: 'dropdown', key: row.key, options: row.options } },
+    );
+  }
+
+  getControlValue(key: string): unknown {
+    const settings = this.plugin.settings as unknown as Record<string, unknown>;
+    return key === 'textSize' ? (this.plugin.settings.textSize ? String(this.plugin.settings.textSize) : '') : settings[key];
+  }
+
+  async setControlValue(key: string, value: unknown): Promise<void> {
+    const settings = this.plugin.settings as unknown as Record<string, unknown>;
+    settings[key] = key === 'textSize' ? Number(value) || 0 : value;
+    await this.plugin.saveData(this.plugin.settings);
+  }
+
+  /** The same rows for Obsidian versions before 1.13. */
   display(): void {
     this.containerEl.empty();
-    // Newer Obsidian draws settings in groups, and themes style the group as one card.
-    // Loose settings next to a group look broken, so use a group when this version has one.
-    const Group = (obsidianModule as { SettingGroup?: new (el: HTMLElement) => SettingGroup }).SettingGroup;
-    const group = Group ? new Group(this.containerEl) : null;
-    const add = (build: (setting: Setting) => void): void => {
-      if (group) group.addSetting(build);
-      else build(new Setting(this.containerEl));
-    };
-    const toggle = (name: string, desc: string, key: { [K in keyof VolcanicSettings]: VolcanicSettings[K] extends boolean ? K : never }[keyof VolcanicSettings]): void =>
-      add((setting) =>
-        setting
-          .setName(name)
-          .setDesc(desc)
-          .addToggle((control) =>
-            control.setValue(this.plugin.settings[key]).onChange(async (value) => {
-              this.plugin.settings[key] = value;
-              await this.plugin.saveData(this.plugin.settings);
-            }),
-          ),
-      );
-    add((setting) =>
-      setting
-        .setName('Default colour theme')
-        .setDesc('The colours for diagrams that have not chosen a theme of their own. You can pick a different theme for any diagram in its editor. Reopen a note to see the change.')
-        .addDropdown((dropdown) => {
-          dropdown.addOption(DEFAULT_THEME_ID, 'Match Obsidian');
-          for (const theme of THEMES) if (theme.light) dropdown.addOption(theme.id, theme.name);
-          dropdown.setValue(this.plugin.settings.defaultTheme).onChange(async (value) => {
-            this.plugin.settings.defaultTheme = value;
-            await this.plugin.saveData(this.plugin.settings);
-          });
-        }),
-    );
-    toggle('Draw diagrams in notes with Pele', 'Uses the bundled Pele renderer for every mermaid block, so notes match the editor preview. Turn off to use Obsidian\u2019s own renderer. Takes effect after reloading Obsidian or re-enabling the plugin.', 'renderInNotes');
-    toggle('Edit diagrams inside the note', 'Opens the editor in place of the diagram, in Live Preview and Reading view, instead of in a pop-up window. Source mode and some situations still use the pop-up window.', 'editInPlace');
-    add((setting) =>
-      setting
-        .setName('Diagram text size')
-        .setDesc('The text size for diagrams that have not chosen one of their own. Pele\u2019s own size is 16. You can pick a different size for any diagram in its editor. Reopen a note to see the change.')
-        .addDropdown((dropdown) => {
-          for (const size of TEXT_SIZES) dropdown.addOption(size.id, size.id ? size.name : 'Default (16)');
-          dropdown.setValue(this.plugin.settings.textSize ? String(this.plugin.settings.textSize) : '').onChange(async (value) => {
-            this.plugin.settings.textSize = Number(value) || 0;
-            await this.plugin.saveData(this.plugin.settings);
-          });
-        }),
-    );
-    toggle('Fit diagrams to the note width', 'Scales each diagram up or down to match the width of the note or pane, so it reads well on wide screens and in narrow side panes. Turn off to keep every diagram at its drawn size. Reopen a note to see the change.', 'fitWidth');
-    toggle('Show assignee, status and progress on Gantt tasks', 'Draws who a task is assigned to, its status and its percent complete beside each bar, and fills the bar to show progress. Reopen a note to see the change.', 'showTaskDetails');
-    toggle('Show descriptions under diagrams', 'Shows the description you give a diagram as a caption below it. Screen readers read the description either way. Reopen a note to see the change.', 'showDescription');
-    toggle('Put connection labels beside their lines', 'Moves the text on a connection off the line: above or below a line that runs across, left or right of one that runs up and down. Turn off to keep labels on the line. Reopen a note to see the change.', 'labelsBesideLines');
+    for (const row of this.rows()) {
+      const setting = new Setting(this.containerEl).setName(row.name).setDesc(row.desc);
+      const current = this.getControlValue(row.key);
+      if (row.kind === 'toggle') {
+        setting.addToggle((control) => control.setValue(current === true).onChange((value) => void this.setControlValue(row.key, value)));
+      } else {
+        setting.addDropdown((dropdown) => dropdown.addOptions(row.options).setValue(typeof current === 'string' ? current : '').onChange((value) => void this.setControlValue(row.key, value)));
+      }
+    }
   }
 }

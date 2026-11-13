@@ -1,4 +1,4 @@
-import { createTabs, h, uniqueId, type Tabs } from './dom';
+import { createTabs, h, s, uniqueId, type Tabs } from './dom';
 import {
   SCORES,
   actorsOf,
@@ -140,9 +140,7 @@ export class JourneyEditor implements KindEditor {
       iconButton(setIcon, 'Add step', 'plus', () => this.addStep()),
       iconButton(setIcon, 'Add section', 'rows-3', () => this.addSection()),
     );
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.setAttribute('class', 'volcanic-journey-line');
-    this.svg.setAttribute('aria-hidden', 'true');
+    this.svg = s('svg', { class: 'volcanic-journey-line', 'aria-hidden': 'true' });
     this.marker = h('div', { class: 'volcanic-journey-marker', attrs: { 'aria-hidden': 'true', hidden: true } });
     this.rowGlow = h('div', { class: 'volcanic-journey-glow', attrs: { 'aria-hidden': 'true', hidden: true } });
     this.inner = h('div', { class: 'volcanic-journey-inner', attrs: { role: 'group', 'aria-label': 'User journey', 'aria-describedby': helpId } });
@@ -360,7 +358,7 @@ export class JourneyEditor implements KindEditor {
 
   private renderCanvas(): void {
     const active = document.activeElement;
-    const hadFocus = active instanceof HTMLElement && this.inner.contains(active);
+    const hadFocus = active?.instanceOf(HTMLElement) && this.inner.contains(active);
     for (const el of [...this.stepEls.values(), ...this.sectionEls.values()]) el.remove();
     this.stepEls.clear();
     this.sectionEls.clear();
@@ -488,7 +486,7 @@ export class JourneyEditor implements KindEditor {
     this.svg.replaceChildren();
     const points = allSteps(this.j).map(({ step }) => [this.centres.get(step.id)!, this.yOf(step.score)] as const);
     if (points.length < 2) return;
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const path = s('path');
     let d = `M${points[0][0]},${points[0][1]}`;
     for (let i = 1; i < points.length; i++) {
       const [x0, y0] = points[i - 1];

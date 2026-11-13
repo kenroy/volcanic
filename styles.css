@@ -49,8 +49,8 @@
   box-sizing: border-box;
 }
 
-.volcanic-editor [hidden] {
-  display: none !important;
+.volcanic-editor [hidden][hidden][hidden] {
+  display: none;
 }
 
 .volcanic-editor :focus-visible {
@@ -66,15 +66,14 @@
   display: none;
 }
 
-.volcanic-sr-only {
-  position: absolute !important;
+.volcanic-sr-only.volcanic-sr-only {
+  position: absolute;
   width: 1px;
   height: 1px;
   margin: -1px;
   padding: 0;
   overflow: hidden;
   clip: rect(0 0 0 0);
-  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }
@@ -480,7 +479,7 @@
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  transition: box-shadow 120ms ease;
+  transition: box-shadow var(--volcanic-duration, 120ms) ease;
 }
 
 .volcanic-node[data-shape='rounded'] {
@@ -625,7 +624,7 @@
   border-radius: 50%;
   cursor: crosshair;
   opacity: 0;
-  transition: opacity 120ms ease;
+  transition: opacity var(--volcanic-duration, 120ms) ease;
   touch-action: none;
 }
 
@@ -834,10 +833,10 @@
 
 /* Scale the whole diagram to fit the panel, whatever its shape. */
 .volcanic-preview-host svg {
-  width: auto !important;
-  height: auto !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .volcanic-preview-message {
@@ -942,14 +941,14 @@
   background: var(--background-modifier-hover);
 }
 
-.volcanic-shape-option:has(input:checked) {
+.volcanic-shape-option.is-checked {
   border-color: var(--volcanic-accent);
   box-shadow: inset 0 0 0 1px var(--volcanic-accent);
   color: var(--text-normal);
   font-weight: var(--font-semibold);
 }
 
-.volcanic-shape-option:has(input:focus-visible) {
+.volcanic-shape-option.is-focused {
   box-shadow: var(--volcanic-focus);
 }
 
@@ -1146,7 +1145,7 @@
   display: flex;
   gap: var(--size-4-1);
   opacity: 0;
-  transition: opacity 120ms ease;
+  transition: opacity var(--volcanic-duration, 120ms) ease;
 }
 
 .volcanic-edit-button {
@@ -1227,9 +1226,9 @@
 /* ── Preferences ─────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .volcanic-editor * {
-    transition: none !important;
-    scroll-behavior: auto !important;
+  .volcanic-editor {
+    --volcanic-duration: 0s;
+    --volcanic-slide: 0s;
   }
 }
 
@@ -1705,8 +1704,8 @@
 
 /* ── Editing inside the note ─────────────────────────────────────────────── */
 
-.volcanic-hidden {
-  display: none !important;
+body .volcanic-hidden.volcanic-hidden.volcanic-hidden {
+  display: none;
 }
 
 .volcanic-inline-host {
@@ -1825,7 +1824,7 @@
 
 /* Obsidian's hover tooltip shows the length from before the drag, so hide it until the bar is dropped. */
 body.volcanic-is-dragging .tooltip {
-  display: none !important;
+  visibility: hidden;
 }
 
 /* Saturdays and Sundays: a very light band behind the rows. */
@@ -2198,10 +2197,6 @@ body.theme-dark {
   --volcanic-holiday-12: #a8b4c4;
 }
 
-.volcanic-holiday-controls {
-  display: contents;
-}
-
 .volcanic-gantt-holiday {
   position: absolute;
   top: 0;
@@ -2504,11 +2499,9 @@ body.theme-dark {
   display: none;
 }
 
-.volcanic-mind-ghost {
-  position: fixed !important;
+.volcanic-mind-node.volcanic-mind-ghost {
+  position: fixed;
   z-index: 100000;
-  width: auto !important;
-  height: auto !important;
   opacity: 0.85;
   pointer-events: none;
   box-shadow: var(--shadow-l);
@@ -2661,7 +2654,7 @@ body.theme-dark {
   -webkit-user-select: none;
   touch-action: none;
   outline: none;
-  transition: top 120ms ease;
+  transition: top var(--volcanic-duration, 120ms) ease;
 }
 
 .volcanic-journey-text {
@@ -2699,8 +2692,8 @@ body.theme-dark {
   transition: none;
 }
 
-.volcanic-journey-ghost {
-  position: fixed !important;
+.volcanic-journey-ghost.volcanic-journey-ghost {
+  position: fixed;
   z-index: 100000;
   opacity: 0.88;
   pointer-events: none;
@@ -2887,7 +2880,6 @@ body.theme-dark {
     width: 1px;
     height: 1px;
     overflow: hidden;
-    clip-path: inset(50%);
     white-space: nowrap;
   }
   .volcanic-pie-row .volcanic-button {
@@ -3033,7 +3025,6 @@ body.theme-dark {
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip-path: inset(50%);
   white-space: nowrap;
 }
 
@@ -3207,7 +3198,6 @@ body.theme-dark {
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip-path: inset(50%);
   white-space: nowrap;
 }
 
@@ -3309,7 +3299,6 @@ body.theme-dark {
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip-path: inset(50%);
   white-space: nowrap;
 }
 
@@ -3466,7 +3455,6 @@ body.theme-dark {
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip-path: inset(50%);
   white-space: nowrap;
 }
 
@@ -4210,13 +4198,13 @@ body.theme-dark {
   box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
   transform: translateX(100%);
   visibility: hidden;
-  transition: transform 220ms ease, visibility 0s linear 220ms;
+  transition: transform var(--volcanic-slide, 220ms) ease, visibility 0s linear var(--volcanic-slide, 220ms);
 }
 
 .volcanic-editor.is-narrow.is-preview-open .volcanic-output {
   transform: none;
   visibility: visible;
-  transition: transform 220ms ease;
+  transition: transform var(--volcanic-slide, 220ms) ease;
 }
 
 .volcanic-editor.is-narrow .volcanic-output .volcanic-panel {
@@ -4235,3 +4223,604 @@ body.theme-dark {
 .volcanic-editor.no-motion.is-narrow .volcanic-output {
   transition: none;
 }
+
+/* ── Hidden parts, set by class rather than inline style ─────────────────────────────────────────────── */
+
+.volcanic-off {
+  display: none;
+}
+
+.volcanic-holiday-dot.is-blank {
+  visibility: hidden;
+}
+
+/* The filled part of a Gantt bar showing how much is done. */
+.volcanic-progress {
+  rx: var(--_r);
+  pointer-events: none;
+}
+
+.volcanic-mind-node.is-measuring {
+  left: 0;
+  width: max-content;
+}
+
+/* ── Colour themes (generated from src/themes.ts by scripts/theme-css.mjs; do not edit) ── */
+[data-volcanic-theme="ocean"][data-volcanic-theme] {
+  --volcanic-t-accent: #1b6ca8;
+  --volcanic-t-surface: #e8f2fa;
+  --volcanic-t-surface-alt: #d3e6f4;
+  --volcanic-t-border: #4a7fa6;
+  --volcanic-t-line: #35688c;
+  --volcanic-t-critical: #c4372f;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #1b6ca8;
+  --volcanic-t-series-2: #1f8a80;
+  --volcanic-t-series-3: #5b84c4;
+  --volcanic-t-series-4: #d98a1c;
+  --volcanic-t-series-5: #7a5bb5;
+  --volcanic-t-series-6: #c4372f;
+  --volcanic-t-series-7: #2b97ad;
+  --volcanic-t-series-8: #66788a;
+}
+.theme-dark [data-volcanic-theme="ocean"][data-volcanic-theme] {
+  --volcanic-t-accent: #5fb3e8;
+  --volcanic-t-surface: #16293a;
+  --volcanic-t-surface-alt: #1f3a52;
+  --volcanic-t-border: #6aa6cf;
+  --volcanic-t-line: #8cbbdc;
+  --volcanic-t-critical: #ff7a70;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #5fb3e8;
+  --volcanic-t-series-2: #4cc2b4;
+  --volcanic-t-series-3: #8fb0ea;
+  --volcanic-t-series-4: #f2b455;
+  --volcanic-t-series-5: #b79cf0;
+  --volcanic-t-series-6: #ff7a70;
+  --volcanic-t-series-7: #58c6dc;
+  --volcanic-t-series-8: #a0b0c0;
+}
+[data-volcanic-theme="forest"][data-volcanic-theme] {
+  --volcanic-t-accent: #2d7a4d;
+  --volcanic-t-surface: #e9f4ec;
+  --volcanic-t-surface-alt: #d5eadb;
+  --volcanic-t-border: #528a68;
+  --volcanic-t-line: #3d7253;
+  --volcanic-t-critical: #c4372f;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #2d7a4d;
+  --volcanic-t-series-2: #7a9a1f;
+  --volcanic-t-series-3: #2a8f8a;
+  --volcanic-t-series-4: #c9892a;
+  --volcanic-t-series-5: #8a6b4a;
+  --volcanic-t-series-6: #c4372f;
+  --volcanic-t-series-7: #5b8d3a;
+  --volcanic-t-series-8: #6b7c72;
+}
+.theme-dark [data-volcanic-theme="forest"][data-volcanic-theme] {
+  --volcanic-t-accent: #6fcf97;
+  --volcanic-t-surface: #16301f;
+  --volcanic-t-surface-alt: #21402c;
+  --volcanic-t-border: #6fa985;
+  --volcanic-t-line: #8fc4a3;
+  --volcanic-t-critical: #ff7a70;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #6fcf97;
+  --volcanic-t-series-2: #b5d35a;
+  --volcanic-t-series-3: #58c9c2;
+  --volcanic-t-series-4: #efb35a;
+  --volcanic-t-series-5: #c4a27c;
+  --volcanic-t-series-6: #ff7a70;
+  --volcanic-t-series-7: #91cf6b;
+  --volcanic-t-series-8: #a0b3a8;
+}
+[data-volcanic-theme="sunset"][data-volcanic-theme] {
+  --volcanic-t-accent: #c0501a;
+  --volcanic-t-surface: #fdf0e6;
+  --volcanic-t-surface-alt: #fadfc9;
+  --volcanic-t-border: #b5683a;
+  --volcanic-t-line: #9a532c;
+  --volcanic-t-critical: #b3261e;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #c0501a;
+  --volcanic-t-series-2: #d9981f;
+  --volcanic-t-series-3: #b5365a;
+  --volcanic-t-series-4: #7d5aa6;
+  --volcanic-t-series-5: #2f7f8a;
+  --volcanic-t-series-6: #b3261e;
+  --volcanic-t-series-7: #8f6b3a;
+  --volcanic-t-series-8: #7a6c63;
+}
+.theme-dark [data-volcanic-theme="sunset"][data-volcanic-theme] {
+  --volcanic-t-accent: #ff9460;
+  --volcanic-t-surface: #3a2216;
+  --volcanic-t-surface-alt: #4e2f1d;
+  --volcanic-t-border: #d79067;
+  --volcanic-t-line: #e5a77f;
+  --volcanic-t-critical: #ff8078;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #ff9460;
+  --volcanic-t-series-2: #f2c04a;
+  --volcanic-t-series-3: #f07a9a;
+  --volcanic-t-series-4: #b79cf0;
+  --volcanic-t-series-5: #58c0cc;
+  --volcanic-t-series-6: #ff8078;
+  --volcanic-t-series-7: #d6b07a;
+  --volcanic-t-series-8: #b8a89c;
+}
+[data-volcanic-theme="lavender"][data-volcanic-theme] {
+  --volcanic-t-accent: #6246c9;
+  --volcanic-t-surface: #f0ecfb;
+  --volcanic-t-surface-alt: #e1d9f7;
+  --volcanic-t-border: #7d69bd;
+  --volcanic-t-line: #62519f;
+  --volcanic-t-critical: #b3261e;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #6246c9;
+  --volcanic-t-series-2: #2f78c4;
+  --volcanic-t-series-3: #b0408c;
+  --volcanic-t-series-4: #2a8f84;
+  --volcanic-t-series-5: #d08a22;
+  --volcanic-t-series-6: #b3261e;
+  --volcanic-t-series-7: #8a63c4;
+  --volcanic-t-series-8: #6f6c85;
+}
+.theme-dark [data-volcanic-theme="lavender"][data-volcanic-theme] {
+  --volcanic-t-accent: #a592f5;
+  --volcanic-t-surface: #272046;
+  --volcanic-t-surface-alt: #352c5e;
+  --volcanic-t-border: #9a89dd;
+  --volcanic-t-line: #b7a9ee;
+  --volcanic-t-critical: #ff8078;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #a592f5;
+  --volcanic-t-series-2: #6fb1f2;
+  --volcanic-t-series-3: #f08fcc;
+  --volcanic-t-series-4: #5cc9bd;
+  --volcanic-t-series-5: #f2bd62;
+  --volcanic-t-series-6: #ff8078;
+  --volcanic-t-series-7: #c1a2f0;
+  --volcanic-t-series-8: #aaa6c4;
+}
+[data-volcanic-theme="rose"][data-volcanic-theme] {
+  --volcanic-t-accent: #c2335f;
+  --volcanic-t-surface: #fbebf0;
+  --volcanic-t-surface-alt: #f6d6e0;
+  --volcanic-t-border: #b9577a;
+  --volcanic-t-line: #9e4162;
+  --volcanic-t-critical: #a8201a;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #c2335f;
+  --volcanic-t-series-2: #d98a2a;
+  --volcanic-t-series-3: #7d4fb0;
+  --volcanic-t-series-4: #2c8a86;
+  --volcanic-t-series-5: #3f72c0;
+  --volcanic-t-series-6: #a8201a;
+  --volcanic-t-series-7: #b86a8c;
+  --volcanic-t-series-8: #7a6b72;
+}
+.theme-dark [data-volcanic-theme="rose"][data-volcanic-theme] {
+  --volcanic-t-accent: #f27a9d;
+  --volcanic-t-surface: #3a1824;
+  --volcanic-t-surface-alt: #4e2231;
+  --volcanic-t-border: #d9819d;
+  --volcanic-t-line: #eb9db5;
+  --volcanic-t-critical: #ff8a80;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #f27a9d;
+  --volcanic-t-series-2: #f2bd62;
+  --volcanic-t-series-3: #b79cf0;
+  --volcanic-t-series-4: #58c9c2;
+  --volcanic-t-series-5: #7fa8f0;
+  --volcanic-t-series-6: #ff8a80;
+  --volcanic-t-series-7: #e3a0b8;
+  --volcanic-t-series-8: #b8a6ad;
+}
+[data-volcanic-theme="graphite"][data-volcanic-theme] {
+  --volcanic-t-accent: #3d4a5c;
+  --volcanic-t-surface: #eceff2;
+  --volcanic-t-surface-alt: #dde2e7;
+  --volcanic-t-border: #6e7a88;
+  --volcanic-t-line: #566170;
+  --volcanic-t-critical: #b3261e;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #3d4a5c;
+  --volcanic-t-series-2: #6b7a8c;
+  --volcanic-t-series-3: #8a96a6;
+  --volcanic-t-series-4: #a5744a;
+  --volcanic-t-series-5: #4f7f88;
+  --volcanic-t-series-6: #b3261e;
+  --volcanic-t-series-7: #5d6b52;
+  --volcanic-t-series-8: #7a7a7a;
+}
+.theme-dark [data-volcanic-theme="graphite"][data-volcanic-theme] {
+  --volcanic-t-accent: #aeb8c6;
+  --volcanic-t-surface: #24282e;
+  --volcanic-t-surface-alt: #323840;
+  --volcanic-t-border: #8b95a3;
+  --volcanic-t-line: #aab3bf;
+  --volcanic-t-critical: #ff8078;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #aeb8c6;
+  --volcanic-t-series-2: #8795a8;
+  --volcanic-t-series-3: #c5ccd6;
+  --volcanic-t-series-4: #d9a577;
+  --volcanic-t-series-5: #7fb5bd;
+  --volcanic-t-series-6: #ff8078;
+  --volcanic-t-series-7: #9fb592;
+  --volcanic-t-series-8: #b0b0b0;
+}
+[data-volcanic-theme="mint"][data-volcanic-theme] {
+  --volcanic-t-accent: #0f8a6d;
+  --volcanic-t-surface: #e6f7f1;
+  --volcanic-t-surface-alt: #cdeee2;
+  --volcanic-t-border: #3f9c85;
+  --volcanic-t-line: #2d7c69;
+  --volcanic-t-critical: #c4372f;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #0f8a6d;
+  --volcanic-t-series-2: #3aa1d8;
+  --volcanic-t-series-3: #7a9f1c;
+  --volcanic-t-series-4: #d98a26;
+  --volcanic-t-series-5: #9a6bd1;
+  --volcanic-t-series-6: #c4372f;
+  --volcanic-t-series-7: #14a3a3;
+  --volcanic-t-series-8: #6c8079;
+}
+.theme-dark [data-volcanic-theme="mint"][data-volcanic-theme] {
+  --volcanic-t-accent: #52d6b2;
+  --volcanic-t-surface: #10302a;
+  --volcanic-t-surface-alt: #174238;
+  --volcanic-t-border: #5fbfa6;
+  --volcanic-t-line: #86d9c3;
+  --volcanic-t-critical: #ff7a70;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #52d6b2;
+  --volcanic-t-series-2: #69b9ec;
+  --volcanic-t-series-3: #b4d65a;
+  --volcanic-t-series-4: #f2b55c;
+  --volcanic-t-series-5: #c3a0f0;
+  --volcanic-t-series-6: #ff7a70;
+  --volcanic-t-series-7: #4fd0d0;
+  --volcanic-t-series-8: #a0b8b0;
+}
+[data-volcanic-theme="sand"][data-volcanic-theme] {
+  --volcanic-t-accent: #8f6226;
+  --volcanic-t-surface: #f8f1e3;
+  --volcanic-t-surface-alt: #efe2c6;
+  --volcanic-t-border: #9c7c45;
+  --volcanic-t-line: #7d6035;
+  --volcanic-t-critical: #b3261e;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #8f6226;
+  --volcanic-t-series-2: #5f8447;
+  --volcanic-t-series-3: #b5543a;
+  --volcanic-t-series-4: #4a7a94;
+  --volcanic-t-series-5: #a8821a;
+  --volcanic-t-series-6: #8b5a7a;
+  --volcanic-t-series-7: #7a6a50;
+  --volcanic-t-series-8: #5f6b5f;
+}
+.theme-dark [data-volcanic-theme="sand"][data-volcanic-theme] {
+  --volcanic-t-accent: #e0b56a;
+  --volcanic-t-surface: #33291a;
+  --volcanic-t-surface-alt: #46391f;
+  --volcanic-t-border: #c9a66a;
+  --volcanic-t-line: #d8bc84;
+  --volcanic-t-critical: #ff8078;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #e0b56a;
+  --volcanic-t-series-2: #98c07a;
+  --volcanic-t-series-3: #e48a70;
+  --volcanic-t-series-4: #7fb4cf;
+  --volcanic-t-series-5: #e8c85a;
+  --volcanic-t-series-6: #cf9ab8;
+  --volcanic-t-series-7: #b8a888;
+  --volcanic-t-series-8: #a0aa9c;
+}
+[data-volcanic-theme="berry"][data-volcanic-theme] {
+  --volcanic-t-accent: #8e2a73;
+  --volcanic-t-surface: #f8e9f3;
+  --volcanic-t-surface-alt: #f0d2e5;
+  --volcanic-t-border: #9c4d8a;
+  --volcanic-t-line: #823a70;
+  --volcanic-t-critical: #b3261e;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #8e2a73;
+  --volcanic-t-series-2: #5b4bb5;
+  --volcanic-t-series-3: #d1447c;
+  --volcanic-t-series-4: #2a8a8a;
+  --volcanic-t-series-5: #d98a2a;
+  --volcanic-t-series-6: #3f6fb5;
+  --volcanic-t-series-7: #a85a9a;
+  --volcanic-t-series-8: #76687a;
+}
+.theme-dark [data-volcanic-theme="berry"][data-volcanic-theme] {
+  --volcanic-t-accent: #e28bc9;
+  --volcanic-t-surface: #351a2f;
+  --volcanic-t-surface-alt: #4a2442;
+  --volcanic-t-border: #c985b8;
+  --volcanic-t-line: #dba0cc;
+  --volcanic-t-critical: #ff8078;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #e28bc9;
+  --volcanic-t-series-2: #9a8ef0;
+  --volcanic-t-series-3: #f27aa8;
+  --volcanic-t-series-4: #58c9c9;
+  --volcanic-t-series-5: #f2b45a;
+  --volcanic-t-series-6: #7fa6ee;
+  --volcanic-t-series-7: #d6a0cc;
+  --volcanic-t-series-8: #b8a8bc;
+}
+[data-volcanic-theme="citrus"][data-volcanic-theme] {
+  --volcanic-t-accent: #a86400;
+  --volcanic-t-surface: #fff6d9;
+  --volcanic-t-surface-alt: #fdeaa8;
+  --volcanic-t-border: #a07c10;
+  --volcanic-t-line: #85630c;
+  --volcanic-t-critical: #b3261e;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #a86400;
+  --volcanic-t-series-2: #4f8a1a;
+  --volcanic-t-series-3: #d4492f;
+  --volcanic-t-series-4: #2f8f9e;
+  --volcanic-t-series-5: #8a5cc2;
+  --volcanic-t-series-6: #b07a00;
+  --volcanic-t-series-7: #6f7f20;
+  --volcanic-t-series-8: #6f6a55;
+}
+.theme-dark [data-volcanic-theme="citrus"][data-volcanic-theme] {
+  --volcanic-t-accent: #ffc233;
+  --volcanic-t-surface: #36300f;
+  --volcanic-t-surface-alt: #4a4214;
+  --volcanic-t-border: #d6b43a;
+  --volcanic-t-line: #e6c85c;
+  --volcanic-t-critical: #ff8078;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #ffc233;
+  --volcanic-t-series-2: #9ad45a;
+  --volcanic-t-series-3: #ff7e66;
+  --volcanic-t-series-4: #5ccbdb;
+  --volcanic-t-series-5: #bf9af0;
+  --volcanic-t-series-6: #ffd466;
+  --volcanic-t-series-7: #c5d45c;
+  --volcanic-t-series-8: #b5b09a;
+}
+[data-volcanic-theme="coral"][data-volcanic-theme] {
+  --volcanic-t-accent: #c9442f;
+  --volcanic-t-surface: #fdeeea;
+  --volcanic-t-surface-alt: #f9d9d1;
+  --volcanic-t-border: #b8604f;
+  --volcanic-t-line: #a14434;
+  --volcanic-t-critical: #a8201a;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #c9442f;
+  --volcanic-t-series-2: #2e8f9a;
+  --volcanic-t-series-3: #d99a2a;
+  --volcanic-t-series-4: #5b6fc4;
+  --volcanic-t-series-5: #6f9a2e;
+  --volcanic-t-series-6: #a8201a;
+  --volcanic-t-series-7: #c46a8c;
+  --volcanic-t-series-8: #7c6c68;
+}
+.theme-dark [data-volcanic-theme="coral"][data-volcanic-theme] {
+  --volcanic-t-accent: #ff8a75;
+  --volcanic-t-surface: #3a1d18;
+  --volcanic-t-surface-alt: #4f2a22;
+  --volcanic-t-border: #e0907f;
+  --volcanic-t-line: #eba596;
+  --volcanic-t-critical: #ff8a80;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #ff8a75;
+  --volcanic-t-series-2: #5ccbd6;
+  --volcanic-t-series-3: #f2c25c;
+  --volcanic-t-series-4: #8fa0f0;
+  --volcanic-t-series-5: #a9cf62;
+  --volcanic-t-series-6: #ff8a80;
+  --volcanic-t-series-7: #e59ab8;
+  --volcanic-t-series-8: #b8a8a4;
+}
+[data-volcanic-theme="midnight"][data-volcanic-theme] {
+  --volcanic-t-accent: #1f3a8a;
+  --volcanic-t-surface: #e9edf8;
+  --volcanic-t-surface-alt: #d6ddf1;
+  --volcanic-t-border: #51669f;
+  --volcanic-t-line: #3b4f86;
+  --volcanic-t-critical: #b3261e;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #1f3a8a;
+  --volcanic-t-series-2: #7a3fb0;
+  --volcanic-t-series-3: #0e8aa6;
+  --volcanic-t-series-4: #d98a2a;
+  --volcanic-t-series-5: #2e8f5a;
+  --volcanic-t-series-6: #b3261e;
+  --volcanic-t-series-7: #4f6fd1;
+  --volcanic-t-series-8: #6a7390;
+}
+.theme-dark [data-volcanic-theme="midnight"][data-volcanic-theme] {
+  --volcanic-t-accent: #7aa2ff;
+  --volcanic-t-surface: #0f1730;
+  --volcanic-t-surface-alt: #18244a;
+  --volcanic-t-border: #7f96d6;
+  --volcanic-t-line: #9db0e6;
+  --volcanic-t-critical: #ff8078;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #7aa2ff;
+  --volcanic-t-series-2: #c08cf0;
+  --volcanic-t-series-3: #4fd0e8;
+  --volcanic-t-series-4: #f2b55c;
+  --volcanic-t-series-5: #5fd08f;
+  --volcanic-t-series-6: #ff8078;
+  --volcanic-t-series-7: #9db4ff;
+  --volcanic-t-series-8: #a0a8c0;
+}
+[data-volcanic-theme="autumn"][data-volcanic-theme] {
+  --volcanic-t-accent: #a8431a;
+  --volcanic-t-surface: #f9ede4;
+  --volcanic-t-surface-alt: #f1d9c7;
+  --volcanic-t-border: #a5694a;
+  --volcanic-t-line: #86503a;
+  --volcanic-t-critical: #a8201a;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #a8431a;
+  --volcanic-t-series-2: #b8801f;
+  --volcanic-t-series-3: #6b7f2a;
+  --volcanic-t-series-4: #7a4a2a;
+  --volcanic-t-series-5: #3f7f77;
+  --volcanic-t-series-6: #8f2a3a;
+  --volcanic-t-series-7: #b8683a;
+  --volcanic-t-series-8: #7a6a5f;
+}
+.theme-dark [data-volcanic-theme="autumn"][data-volcanic-theme] {
+  --volcanic-t-accent: #f08a55;
+  --volcanic-t-surface: #33201a;
+  --volcanic-t-surface-alt: #472c22;
+  --volcanic-t-border: #cf9272;
+  --volcanic-t-line: #e0ad92;
+  --volcanic-t-critical: #ff8a80;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #f08a55;
+  --volcanic-t-series-2: #f2b45a;
+  --volcanic-t-series-3: #b0c85a;
+  --volcanic-t-series-4: #c99a78;
+  --volcanic-t-series-5: #5ccbbf;
+  --volcanic-t-series-6: #f07a8c;
+  --volcanic-t-series-7: #e0905a;
+  --volcanic-t-series-8: #b8a89c;
+}
+[data-volcanic-theme="vivid"][data-volcanic-theme] {
+  --volcanic-t-accent: #1c6fc4;
+  --volcanic-t-surface: #f4f5f7;
+  --volcanic-t-surface-alt: #e6e8ec;
+  --volcanic-t-border: #7b848f;
+  --volcanic-t-line: #4d5560;
+  --volcanic-t-critical: #d02f2f;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #1c6fc4;
+  --volcanic-t-series-2: #d02f2f;
+  --volcanic-t-series-3: #2a8a3e;
+  --volcanic-t-series-4: #d98200;
+  --volcanic-t-series-5: #6a3fd6;
+  --volcanic-t-series-6: #0c8599;
+  --volcanic-t-series-7: #c42b6a;
+  --volcanic-t-series-8: #495057;
+}
+.theme-dark [data-volcanic-theme="vivid"][data-volcanic-theme] {
+  --volcanic-t-accent: #5aa9ff;
+  --volcanic-t-surface: #1d2025;
+  --volcanic-t-surface-alt: #2b3036;
+  --volcanic-t-border: #9aa3ab;
+  --volcanic-t-line: #ced4da;
+  --volcanic-t-critical: #ff6b6b;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #5aa9ff;
+  --volcanic-t-series-2: #ff6b6b;
+  --volcanic-t-series-3: #51cf66;
+  --volcanic-t-series-4: #ffa94d;
+  --volcanic-t-series-5: #9775fa;
+  --volcanic-t-series-6: #3bc9db;
+  --volcanic-t-series-7: #f06595;
+  --volcanic-t-series-8: #ced4da;
+}
+[data-volcanic-theme="contrast"][data-volcanic-theme] {
+  --volcanic-t-accent: #0047b3;
+  --volcanic-t-surface: #ffffff;
+  --volcanic-t-surface-alt: #ececec;
+  --volcanic-t-border: #000000;
+  --volcanic-t-line: #000000;
+  --volcanic-t-critical: #a8001a;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #0047b3;
+  --volcanic-t-series-2: #006b2d;
+  --volcanic-t-series-3: #8a1c8a;
+  --volcanic-t-series-4: #8a4b00;
+  --volcanic-t-series-5: #006b7a;
+  --volcanic-t-series-6: #a8001a;
+  --volcanic-t-series-7: #4a4a4a;
+  --volcanic-t-series-8: #000000;
+}
+.theme-dark [data-volcanic-theme="contrast"][data-volcanic-theme] {
+  --volcanic-t-accent: #7db7ff;
+  --volcanic-t-surface: #000000;
+  --volcanic-t-surface-alt: #1c1c1c;
+  --volcanic-t-border: #ffffff;
+  --volcanic-t-line: #ffffff;
+  --volcanic-t-critical: #ff7d8f;
+  --volcanic-t-fg-on-light: #000000;
+  --volcanic-t-fg-on-dark: #ffffff;
+  --volcanic-t-series-1: #7db7ff;
+  --volcanic-t-series-2: #5fe08a;
+  --volcanic-t-series-3: #f09af0;
+  --volcanic-t-series-4: #ffb15c;
+  --volcanic-t-series-5: #5fd9eb;
+  --volcanic-t-series-6: #ff7d8f;
+  --volcanic-t-series-7: #cfcfcf;
+  --volcanic-t-series-8: #ffffff;
+}
+[data-volcanic-no-theme][data-volcanic-no-theme] {
+  --volcanic-t-accent: initial;
+  --volcanic-t-surface: initial;
+  --volcanic-t-surface-alt: initial;
+  --volcanic-t-border: initial;
+  --volcanic-t-line: initial;
+  --volcanic-t-critical: initial;
+  --volcanic-t-fg-on-light: initial;
+  --volcanic-t-fg-on-dark: initial;
+  --volcanic-t-series-1: initial;
+  --volcanic-t-series-2: initial;
+  --volcanic-t-series-3: initial;
+  --volcanic-t-series-4: initial;
+  --volcanic-t-series-5: initial;
+  --volcanic-t-series-6: initial;
+  --volcanic-t-series-7: initial;
+  --volcanic-t-series-8: initial;
+}
+[data-volcanic-theme][data-volcanic-theme],
+[data-volcanic-no-theme][data-volcanic-no-theme] {
+  --pele-accent: var(--volcanic-t-accent, initial) !important;
+  --pele-surface: var(--volcanic-t-surface, initial) !important;
+  --pele-surface-alt: var(--volcanic-t-surface-alt, initial) !important;
+  --pele-border: var(--volcanic-t-border, initial) !important;
+  --pele-line: var(--volcanic-t-line, initial) !important;
+  --pele-critical: var(--volcanic-t-critical, initial) !important;
+  --pele-fg-on-light: var(--volcanic-t-fg-on-light, initial) !important;
+  --pele-fg-on-dark: var(--volcanic-t-fg-on-dark, initial) !important;
+  --pele-series-1: var(--volcanic-t-series-1, initial) !important;
+  --pele-series-2: var(--volcanic-t-series-2, initial) !important;
+  --pele-series-3: var(--volcanic-t-series-3, initial) !important;
+  --pele-series-4: var(--volcanic-t-series-4, initial) !important;
+  --pele-series-5: var(--volcanic-t-series-5, initial) !important;
+  --pele-series-6: var(--volcanic-t-series-6, initial) !important;
+  --pele-series-7: var(--volcanic-t-series-7, initial) !important;
+  --pele-series-8: var(--volcanic-t-series-8, initial) !important;
+}
+/* ── End of colour themes ── */

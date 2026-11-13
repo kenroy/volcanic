@@ -161,7 +161,7 @@ export class GanttEditor implements KindEditor {
       const regions = regionOptions(place.country);
       const dot = h('span', { class: 'volcanic-holiday-dot', attrs: { 'aria-hidden': 'true' } });
       if (place.country) dot.style.setProperty('--holiday', holidayColour(slots.get(placeName(place)) ?? index));
-      else dot.style.visibility = 'hidden';
+      else dot.classList.add('is-blank');
       const row = h('li', { class: 'volcanic-holiday-row' }, h('div', { class: 'volcanic-field-inline' }, dot, h('label', { text: `Country ${index + 1}`, attrs: { for: countryId } }), country));
       if (regions.length) {
         const region = selectControl<string>([{ id: '', name: 'Whole country' }, ...regions], place.region, (value) => {
@@ -527,7 +527,7 @@ export class GanttEditor implements KindEditor {
 
   private renderGrid(): void {
     const active = document.activeElement;
-    const focused = active instanceof HTMLElement && this.scroller.contains(active) ? active.dataset.key : undefined;
+    const focused = active?.instanceOf(HTMLElement) && this.scroller.contains(active) ? active.dataset.key : undefined;
     const keepLeft = this.scroller.scrollLeft;
 
     const spans = this.spans();
@@ -725,7 +725,7 @@ export class GanttEditor implements KindEditor {
       target.removeEventListener('pointercancel', onUp);
       bar.classList.remove('is-dragging');
       document.body.classList.remove('volcanic-is-dragging');
-      (readout as HTMLElement | null)?.remove();
+      readout?.remove();
       if (!moved || delta === 0) {
         if (moved) this.renderGrid();
         return;

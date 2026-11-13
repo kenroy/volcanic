@@ -164,7 +164,7 @@ export class SankeyEditor implements KindEditor {
 
   private renderAll(): void {
     const active = document.activeElement;
-    const inside = active instanceof HTMLElement && this.list.contains(active);
+    const inside = active?.instanceOf(HTMLElement) && this.list.contains(active);
     const keep = inside ? active.dataset.key : undefined;
     const keepAct = inside && !keep ? active.dataset.act : undefined;
     this.renderList();

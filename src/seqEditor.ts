@@ -125,7 +125,7 @@ export class SequenceEditor implements KindEditor {
     );
 
     this.dropLine = s('line', { class: 'volcanic-seq-drop' });
-    this.dropLine.style.display = 'none';
+    this.dropLine.classList.add('volcanic-off');
     this.svg = s('svg', { class: 'volcanic-seq-svg' });
     this.stage = h('div', { class: 'volcanic-seq-stage' }, this.svg);
     this.scroller = h(
@@ -333,7 +333,7 @@ export class SequenceEditor implements KindEditor {
 
   private renderSvg(): void {
     const active = document.activeElement;
-    const focused = active instanceof SVGElement && this.svg.contains(active) ? active.dataset.key : undefined;
+    const focused = active?.instanceOf(SVGElement) && this.svg.contains(active) ? active.dataset.key : undefined;
 
     const n = this.d.participants.length;
     const width = Math.max(520, LEFT * 2 + COL * n);
@@ -546,11 +546,11 @@ export class SequenceEditor implements KindEditor {
       g.classList.add('is-dragging');
       g.setAttribute('transform', `translate(0,${dy})`);
       target = clamp(Math.round(dy / ROW) + from, 0, this.d.steps.length - 1);
-      if (target === from) this.dropLine.style.display = 'none';
+      if (target === from) this.dropLine.classList.add('volcanic-off');
       else {
         const y = this.rowY(target) + (target > from ? ROW / 2 : -ROW / 2);
         setAttrs(this.dropLine, { x1: 8, x2: Number(this.svg.getAttribute('width')) - 8, y1: y, y2: y });
-        this.dropLine.style.display = '';
+        this.dropLine.classList.remove('volcanic-off');
       }
     };
     const onUp = (): void => {
@@ -559,7 +559,7 @@ export class SequenceEditor implements KindEditor {
       g.removeEventListener('pointercancel', onUp);
       g.classList.remove('is-dragging');
       g.removeAttribute('transform');
-      this.dropLine.style.display = 'none';
+      this.dropLine.classList.add('volcanic-off');
       if (moved && target !== from) this.moveStep(from, target);
     };
     g.addEventListener('pointermove', onMove);
@@ -582,11 +582,11 @@ export class SequenceEditor implements KindEditor {
       g.classList.add('is-dragging');
       g.setAttribute('transform', `translate(${dx},0)`);
       target = clamp(Math.round(dx / COL) + from, 0, this.d.participants.length - 1);
-      if (target === from) this.dropLine.style.display = 'none';
+      if (target === from) this.dropLine.classList.add('volcanic-off');
       else {
         const x = LEFT + COL * target + (target > from ? COL : 0);
         setAttrs(this.dropLine, { x1: x, x2: x, y1: TOP - 4, y2: TOP + HEAD_H + 4 });
-        this.dropLine.style.display = '';
+        this.dropLine.classList.remove('volcanic-off');
       }
     };
     const onUp = (): void => {
@@ -595,7 +595,7 @@ export class SequenceEditor implements KindEditor {
       g.removeEventListener('pointercancel', onUp);
       g.classList.remove('is-dragging');
       g.removeAttribute('transform');
-      this.dropLine.style.display = 'none';
+      this.dropLine.classList.add('volcanic-off');
       if (moved && target !== from) this.moveParticipant(from, target);
     };
     g.addEventListener('pointermove', onMove);

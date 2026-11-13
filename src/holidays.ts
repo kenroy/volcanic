@@ -34,7 +34,7 @@ let countries: { id: string; name: string }[] | null = null;
 const regionCache = new Map<string, { id: string; name: string }[]>();
 
 function names(): Record<string, string> {
-  return new Holidays().getCountries('en') as Record<string, string>;
+  return new Holidays().getCountries('en');
 }
 
 /** Every country with holiday data, by name. */

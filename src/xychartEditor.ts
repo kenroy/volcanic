@@ -236,7 +236,7 @@ export class XyChartEditor implements KindEditor {
 
   private renderAll(): void {
     const active = document.activeElement;
-    const inside = active instanceof HTMLElement && this.table.contains(active);
+    const inside = active?.instanceOf(HTMLElement) && this.table.contains(active);
     const keep = inside ? active.dataset.key : undefined;
     const keepAct = inside && !keep ? active.dataset.act : undefined;
     this.renderTable();

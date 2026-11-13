@@ -79,7 +79,12 @@ export function insideOf(a: Architecture, id: string): Set<string> {
   let grew = true;
   while (grew) {
     grew = false;
-    for (const e of a.elements) if (e.parent && out.has(e.parent) && !out.has(e.id)) out.add(e.id), (grew = true);
+    for (const e of a.elements) {
+      if (e.parent && out.has(e.parent) && !out.has(e.id)) {
+        out.add(e.id);
+        grew = true;
+      }
+    }
   }
   return out;
 }

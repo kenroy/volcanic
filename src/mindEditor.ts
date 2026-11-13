@@ -1,4 +1,4 @@
-import { createTabs, h, uniqueId, type Tabs } from './dom';
+import { createTabs, h, s, uniqueId, type Tabs } from './dom';
 import { History, type KindEditor, type KindHost, type KindMeta } from './kinds';
 import {
   MIND_SHAPES,
@@ -133,8 +133,7 @@ export class MindMapEditor implements KindEditor {
       iconButton(setIcon, 'Add idea beside', 'corner-down-right', () => this.addSibling(this.selectedId)),
     );
 
-    this.links = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.links.setAttribute('class', 'volcanic-mind-links');
+    this.links = s('svg', { class: 'volcanic-mind-links' });
     this.links.setAttribute('aria-hidden', 'true');
     this.indicator = h('div', { class: 'volcanic-mind-indicator', attrs: { 'aria-hidden': 'true', hidden: true } });
     this.inner = h('div', { class: 'volcanic-mind-inner', attrs: { role: 'tree', 'aria-label': 'Mind map', 'aria-describedby': helpId } });
@@ -333,7 +332,7 @@ export class MindMapEditor implements KindEditor {
 
   private renderCanvas(): void {
     const active = document.activeElement;
-    const hadFocus = active instanceof HTMLElement && this.inner.contains(active);
+    const hadFocus = active?.instanceOf(HTMLElement) && this.inner.contains(active);
     for (const el of this.nodeEls.values()) el.remove();
     this.nodeEls.clear();
 
@@ -395,18 +394,16 @@ export class MindMapEditor implements KindEditor {
   private layout(): void {
     // Measure each idea at its natural size, not at the size an earlier layout gave it.
     for (const el of this.nodeEls.values()) {
-      el.style.minWidth = '';
-      el.style.height = '';
       // Free of where it sat before, so there is always room to size it by its text.
-      el.style.left = '0px';
-      el.style.width = 'max-content';
+      for (const name of ['min-width', 'height', 'left', 'width']) el.style.removeProperty(name);
+      el.classList.add('is-measuring');
     }
     const sizes = new Map<string, { w: number; h: number }>();
     walk(this.m.root, (n) => {
       const el = this.nodeEls.get(n.id);
       sizes.set(n.id, { w: el?.offsetWidth || 120, h: el?.offsetHeight || 40 });
     });
-    for (const el of this.nodeEls.values()) el.style.width = '';
+    for (const el of this.nodeEls.values()) el.classList.remove('is-measuring');
     const { right, left } = this.sides();
     const rootSize = sizes.get(this.m.root.id)!;
 
@@ -503,9 +500,7 @@ export class MindMapEditor implements KindEditor {
         const y1 = centres.get(node.id)!;
         const y2 = centres.get(child.id)!;
         const dx = (x2 - x1) / 2;
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`);
-        path.setAttribute('class', 'volcanic-mind-link');
+        const path = s('path', { d: `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`, class: 'volcanic-mind-link' });
         const branch = this.nodeEls.get(child.id)?.style.getPropertyValue('--branch');
         if (branch) path.style.setProperty('--branch', branch);
         this.links.append(path);
@@ -559,6 +554,7 @@ export class MindMapEditor implements KindEditor {
         ghost = source.cloneNode(true) as HTMLElement;
         ghost.removeAttribute('role');
         ghost.removeAttribute('data-id');
+        for (const name of ['width', 'height']) ghost.style.removeProperty(name);
         ghost.classList.add('volcanic-mind-ghost');
         ghost.setAttribute('aria-hidden', 'true');
         document.body.append(ghost);
@@ -593,7 +589,7 @@ export class MindMapEditor implements KindEditor {
 
   /** Where a dragged idea would land if dropped here: inside an idea, or just before or after it. */
   private zoneAt(x: number, y: number, dragged: MindNode): DropZone | null {
-    const hit = document.elementsFromPoint(x, y).find((el): el is HTMLElement => el instanceof HTMLElement && el.classList.contains('volcanic-mind-node') && !el.classList.contains('volcanic-mind-ghost'));
+    const hit = document.elementsFromPoint(x, y).find((el): el is HTMLElement => el?.instanceOf(HTMLElement) && el.classList.contains('volcanic-mind-node') && !el.classList.contains('volcanic-mind-ghost'));
     const id = hit?.dataset.id;
     if (!hit || !id || isWithin(dragged, id)) return null;
     const rect = hit.getBoundingClientRect();
@@ -680,7 +676,7 @@ export class MindMapEditor implements KindEditor {
           if (toward) this.outdent(id);
           else this.indent(id);
         } else if (toward) {
-          if (rows[at].parent) this.select(rows[at].parent!.id, true);
+          if (rows[at].parent) this.select(rows[at].parent.id, true);
         } else if (node.children[0]) this.select(node.children[0].id, true);
         break;
       }

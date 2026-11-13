@@ -189,7 +189,7 @@ export class TreemapEditor implements KindEditor {
 
   private renderAll(): void {
     const active = document.activeElement;
-    const inside = active instanceof HTMLElement && this.list.contains(active);
+    const inside = active?.instanceOf(HTMLElement) && this.list.contains(active);
     const keep = inside ? active.dataset.key : undefined;
     const keepAct = inside && !keep ? active.dataset.act : undefined;
     this.renderList();
@@ -227,7 +227,7 @@ export class TreemapEditor implements KindEditor {
       const size = branch
         ? h('span', { class: 'volcanic-tm-total', attrs: { 'data-total': node.id, 'aria-label': `Total ${formatSize(sizeOf(node))}` }, text: formatSize(sizeOf(node)) })
         : h('input', { class: 'volcanic-input volcanic-tm-value', attrs: { type: 'number', min: '0', step: 'any', inputmode: 'decimal', 'aria-label': `Size of ${this.name(node)}`, 'data-key': `value:${node.id}` } });
-      if (size instanceof HTMLInputElement) {
+      if (size?.instanceOf(HTMLInputElement)) {
         size.value = formatSize(node.value);
         size.addEventListener('input', () => {
           const n = Number(size.value);

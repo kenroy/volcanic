@@ -1,3 +1,4 @@
+import { localStore } from './store';
 import { formatDay, ganttFromMermaid, resolveSpans } from './gantt';
 import { groupByPlace, holidayColour, holidaysForPlaces, placeIndexes } from './holidays';
 
@@ -7,22 +8,12 @@ const LEGEND_MAX = 12;
 
 function readHidden(key: string | undefined): string[] {
   if (!key) return [];
-  try {
-    const value = JSON.parse(window.localStorage.getItem(key) ?? '[]') as unknown;
-    return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
-  } catch {
-    return [];
-  }
+  const value = localStore.load(key);
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
 }
 
 function writeHidden(key: string | undefined, hidden: Set<string>): void {
-  if (!key) return;
-  try {
-    if (hidden.size) window.localStorage.setItem(key, JSON.stringify(Array.from(hidden)));
-    else window.localStorage.removeItem(key);
-  } catch {
-    // The switches still work for this session.
-  }
+  if (key) localStore.save(key, hidden.size ? Array.from(hidden) : null);
 }
 
 function clear(svg: SVGSVGElement): void {
@@ -104,7 +95,7 @@ export function setHolidayBands(root: Element, source: string, options: { legend
         band.setAttribute('fill', holidayColour(colours.get(place) ?? 0));
         band.setAttribute('fill-opacity', choices.length > 1 ? '0.2' : '0.17');
         band.dataset.place = place;
-        if (hidden.has(place)) band.style.display = 'none';
+        if (hidden.has(place)) band.classList.add('volcanic-off');
         const title = document.createElementNS(NS, 'title');
         title.textContent = onThatDay
           .filter((x) => x.place === place)
@@ -119,35 +110,25 @@ export function setHolidayBands(root: Element, source: string, options: { legend
 
   if (options.legend && svg.parentElement) {
     const noun = choices.every((c) => !c.include) ? 'Public holidays' : 'Holidays';
-    const legend = document.createElement('div');
-    legend.className = 'volcanic-holiday-legend';
-    legend.setAttribute('role', 'group');
-    legend.setAttribute('aria-label', `${noun} by country`);
+    const legend = createDiv({ cls: 'volcanic-holiday-legend', attr: { role: 'group', 'aria-label': `${noun} by country` } });
     if (!found.length) {
-      legend.append(Object.assign(document.createElement('p'), { className: 'volcanic-holiday-none', textContent: `No ${noun.toLowerCase()} fall within this chart.` }));
+      legend.append(createEl('p', { cls: 'volcanic-holiday-none', text: `No ${noun.toLowerCase()} fall within this chart.` }));
     } else {
-      legend.append(Object.assign(document.createElement('div'), { className: 'volcanic-holiday-heading', textContent: noun }));
+      legend.append(createDiv({ cls: 'volcanic-holiday-heading', text: noun }));
       let n = 0;
       for (const g of groupByPlace(found, choices)) {
         n += 1;
-        const line = document.createElement('label');
-        line.className = `volcanic-holiday-line${hidden.has(g.place) ? ' is-off' : ''}`;
-        const box = document.createElement('input');
-        box.type = 'checkbox';
+        const line = createEl('label', { cls: `volcanic-holiday-line${hidden.has(g.place) ? ' is-off' : ''}` });
+        const box = createEl('input', { type: 'checkbox' });
         box.checked = !hidden.has(g.place);
         box.dataset.place = g.place;
         const describedBy = `volcanic-holiday-${Math.random().toString(36).slice(2, 8)}-${n}`;
         box.setAttribute('aria-describedby', describedBy);
-        const swatch = document.createElement('span');
-        swatch.className = 'volcanic-holiday-swatch';
-        swatch.setAttribute('aria-hidden', 'true');
+        const swatch = createSpan({ cls: 'volcanic-holiday-swatch', attr: { 'aria-hidden': 'true' } });
         swatch.style.setProperty('--holiday', holidayColour(colours.get(g.place) ?? 0));
-        const text = document.createElement('span');
-        text.className = 'volcanic-holiday-text';
-        const name = document.createElement('strong');
-        name.textContent = g.place;
-        const list = document.createElement('span');
-        list.id = describedBy;
+        const text = createSpan({ cls: 'volcanic-holiday-text' });
+        const name = createEl('strong', { text: g.place });
+        const list = createSpan({ attr: { id: describedBy } });
         const first = g.holidays.slice(0, LEGEND_MAX).map((hol) => `${formatDay(hol.day, false)} ${hol.name}`);
         const more = g.holidays.length > LEGEND_MAX ? `, and ${g.holidays.length - LEGEND_MAX} more` : '';
         list.textContent = g.holidays.length ? `: ${first.join(', ')}${more}.` : ': none during this chart.';

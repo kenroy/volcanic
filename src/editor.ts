@@ -169,7 +169,9 @@ const DEFAULT_LABELS: Partial<Record<Shape, string>> = {
 const snap = (value: number): number => Math.max(0, Math.round(value / GRID) * GRID);
 
 function isTextField(target: EventTarget | null): boolean {
-  return target instanceof HTMLElement && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable);
+  const node = target as Node | null;
+  if (!node?.instanceOf(HTMLElement)) return false;
+  return node.tagName === 'INPUT' || node.tagName === 'TEXTAREA' || node.tagName === 'SELECT' || node.isContentEditable;
 }
 
 export class DiagramEditor {
@@ -389,7 +391,7 @@ export class DiagramEditor {
 
   private kindApi(): KindHost {
     return {
-      setIcon: this.host.setIcon,
+      setIcon: (el, name) => this.host.setIcon(el, name),
       announce: (message) => this.announce(message),
       changed: () => {
         this.renderOutput();
@@ -810,7 +812,7 @@ export class DiagramEditor {
     );
     this.edgeGroup = s('g');
     this.dragLine = s('path', { class: 'volcanic-drag-line', 'marker-end': `url(#${this.uid}-arrow-selected)` });
-    this.dragLine.style.display = 'none';
+    this.dragLine.classList.add('volcanic-off');
     this.guideGroup = s('g', { 'aria-hidden': 'true' });
     this.edgeLayer = s('svg', { class: 'volcanic-edges' }, defs, this.edgeGroup, this.guideGroup, this.dragLine);
     this.emptyState = h(
@@ -1270,8 +1272,8 @@ export class DiagramEditor {
 
   private renderCanvas(): void {
     const active = document.activeElement;
-    const focusedNode = active instanceof HTMLElement && this.canvas.contains(active) ? active.closest<HTMLElement>('[data-node]')?.dataset.node : undefined;
-    const focusedEdge = active instanceof SVGElement && this.edgeLayer.contains(active) ? active.closest<SVGElement>('[data-edge]')?.dataset.edge : undefined;
+    const focusedNode = active?.instanceOf(HTMLElement) && this.canvas.contains(active) ? active.closest<HTMLElement>('[data-node]')?.dataset.node : undefined;
+    const focusedEdge = active?.instanceOf(SVGElement) && this.edgeLayer.contains(active) ? active.closest<SVGElement>('[data-edge]')?.dataset.edge : undefined;
 
     this.inlineEdit = null;
     this.nodeEls.clear();
@@ -1390,7 +1392,7 @@ export class DiagramEditor {
     setAttrs(this.edgeLayer, { width, height, viewBox: `0 0 ${width} ${height}` });
 
     const active = document.activeElement;
-    const focused = active instanceof SVGElement && this.edgeGroup.contains(active) ? active.dataset.edge : undefined;
+    const focused = active?.instanceOf(SVGElement) && this.edgeGroup.contains(active) ? active.dataset.edge : undefined;
     this.edgeGroup.replaceChildren();
 
     const pairCount = new Map<string, number>();
@@ -1614,7 +1616,7 @@ export class DiagramEditor {
     const onMove = (move: PointerEvent): void => {
       const point = this.canvasPoint(move);
       const start = this.borderPoint(source, point.x, point.y);
-      this.dragLine.style.display = '';
+      this.dragLine.classList.remove('volcanic-off');
       this.dragLine.setAttribute('d', `M${start.x},${start.y} L${point.x},${point.y}`);
       const next = targetAt(move);
       if (next !== target) {
@@ -1627,7 +1629,7 @@ export class DiagramEditor {
       handle.removeEventListener('pointermove', onMove);
       handle.removeEventListener('pointerup', onUp);
       handle.removeEventListener('pointercancel', onUp);
-      this.dragLine.style.display = 'none';
+      this.dragLine.classList.add('volcanic-off');
       this.root.classList.remove('is-connecting');
       const to = up.type === 'pointerup' ? targetAt(up) : null;
       if (target) this.nodeEls.get(target)?.classList.remove('is-drop-target');
@@ -1897,6 +1899,10 @@ export class DiagramEditor {
 
     const groupName = uniqueId('volcanic-shape');
     const shapes = h('fieldset', { class: 'volcanic-shape-picker' }, h('legend', { text: 'Shape' }));
+    const options: { input: HTMLInputElement; label: HTMLElement }[] = [];
+    const showChecked = (): void => {
+      for (const { input, label } of options) label.classList.toggle('is-checked', input.checked);
+    };
     for (const shape of SHAPES) {
       const input = h('input', {
         class: 'volcanic-sr-only',
@@ -1904,14 +1910,20 @@ export class DiagramEditor {
         on: {
           change: () => {
             node.shape = shape.id;
+            showChecked();
             this.changed({ inspector: false });
             this.announce(`Shape changed to ${shape.name}.`);
           },
+          focus: () => label.classList.toggle('is-focused', input.matches(':focus-visible')),
+          blur: () => label.classList.remove('is-focused'),
         },
       });
       input.checked = node.shape === shape.id;
-      shapes.append(h('label', { class: 'volcanic-shape-option', attrs: { title: shape.hint } }, input, shapeIcon(shape.id), h('span', { text: shape.name })));
+      const label = h('label', { class: 'volcanic-shape-option', attrs: { title: shape.hint } }, input, shapeIcon(shape.id), h('span', { text: shape.name }));
+      options.push({ input, label });
+      shapes.append(label);
     }
+    showChecked();
 
     const position = (axis: 'x' | 'y'): HTMLInputElement => {
       const input = h('input', {
@@ -2146,7 +2158,7 @@ export class DiagramEditor {
       failure = error;
     }
     if (failure) {
-      const message = failure instanceof Error ? failure.message : String(failure);
+      const message = failure instanceof Error ? failure.message : typeof failure === 'string' ? failure : 'The diagram could not be drawn.';
       this.previewHost.hidden = true;
       this.showPreviewMessage(`Pele could not draw this diagram.\n${message}`, true);
       return;

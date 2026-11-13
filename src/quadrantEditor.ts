@@ -185,7 +185,7 @@ export class QuadrantEditor implements KindEditor {
 
   private renderAll(): void {
     const active = document.activeElement;
-    const keep = active instanceof HTMLElement && this.el.contains(active) ? active.dataset.key : undefined;
+    const keep = active?.instanceOf(HTMLElement) && this.el.contains(active) ? active.dataset.key : undefined;
     this.renderPlane();
     this.renderTable();
     this.buildSide();
@@ -198,7 +198,7 @@ export class QuadrantEditor implements KindEditor {
   }
 
   private renderPlane(): void {
-    const active = document.activeElement instanceof HTMLElement ? document.activeElement.dataset.key : undefined;
+    const active = document.activeElement?.instanceOf(HTMLElement) ? document.activeElement.dataset.key : undefined;
     this.plane.replaceChildren();
     this.dots.clear();
     const { q } = this;

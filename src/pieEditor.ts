@@ -210,7 +210,7 @@ export class PieEditor implements KindEditor {
 
   private renderRows(): void {
     const active = document.activeElement;
-    const keep = active instanceof HTMLElement && this.list.contains(active) ? { id: active.closest<HTMLElement>('li')?.dataset.id, cls: active.className } : null;
+    const keep = active?.instanceOf(HTMLElement) && this.list.contains(active) ? { id: active.closest<HTMLElement>('li')?.dataset.id, cls: active.className } : null;
     this.list.replaceChildren();
     this.rows.clear();
     // The slider's range follows the biggest value, with room above it.
@@ -226,7 +226,7 @@ export class PieEditor implements KindEditor {
         class: 'volcanic-pie-grip',
         attrs: { type: 'button', 'aria-label': `Move ${this.name(slice)}. Drag, or use Alt with the up and down arrow keys.` },
         text: '⠿',
-        on: { pointerdown: (event) => this.onPointerDown(event as PointerEvent, slice.id) },
+        on: { pointerdown: (event) => this.onPointerDown(event, slice.id) },
       });
 
       const label = h('input', { class: 'volcanic-input volcanic-pie-name', attrs: { type: 'text', autocomplete: 'off', 'aria-label': `Name of slice ${n}` } });

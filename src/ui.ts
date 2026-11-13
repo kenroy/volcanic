@@ -1,3 +1,4 @@
+import { localStore } from './store';
 import { h, uniqueId } from './dom';
 import type { SetIcon } from './kinds';
 
@@ -234,21 +235,12 @@ export interface ResizeOptions {
 }
 
 function remembered(key: string): number | null {
-  try {
-    const value = Number(window.localStorage.getItem(key));
-    return Number.isFinite(value) && value > 0 ? value : null;
-  } catch {
-    return null;
-  }
+  const value = Number(localStore.load(key));
+  return Number.isFinite(value) && value > 0 ? value : null;
 }
 
 function remember(key: string, value: number | null): void {
-  try {
-    if (value === null) window.localStorage.removeItem(key);
-    else window.localStorage.setItem(key, String(Math.round(value)));
-  } catch {
-    // Remembering the height is a convenience only.
-  }
+  localStore.save(key, value === null ? null : Math.round(value));
 }
 
 /**

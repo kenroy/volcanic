@@ -151,7 +151,7 @@ export class ArchitectureEditor implements KindEditor {
     const el = this.el.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-key="${key}"]`);
     if (!el) return false;
     el.focus();
-    if (select && el instanceof HTMLInputElement) el.select();
+    if (select && el?.instanceOf(HTMLInputElement)) el.select();
     return true;
   }
 
@@ -224,7 +224,7 @@ export class ArchitectureEditor implements KindEditor {
 
   private renderAll(): void {
     const active = document.activeElement;
-    const inside = active instanceof HTMLElement && this.el.contains(active);
+    const inside = active?.instanceOf(HTMLElement) && this.el.contains(active);
     const keep = inside ? active.dataset.key : undefined;
     const keepAct = inside && !keep ? active.dataset.act : undefined;
     this.renderElements();
@@ -334,7 +334,7 @@ export class ArchitectureEditor implements KindEditor {
     const { connections } = this.a;
     const choices = this.choices();
     const active = document.activeElement;
-    const keep = active instanceof HTMLElement && this.connectionList.contains(active) ? active.dataset.key : undefined;
+    const keep = active?.instanceOf(HTMLElement) && this.connectionList.contains(active) ? active.dataset.key : undefined;
     const rows = connections.map((c, index) => {
       const n = `connection ${index + 1}`;
       const end = (id: string): string => (choices.some((o) => o.id === id) ? id : (choices[0]?.id ?? ''));

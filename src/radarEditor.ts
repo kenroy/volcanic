@@ -250,8 +250,8 @@ export class RadarEditor implements KindEditor {
 
   private renderAll(): void {
     const active = document.activeElement;
-    const keep = active instanceof HTMLElement && this.table.contains(active) ? active.dataset.key : undefined;
-    const keepButton = active instanceof HTMLElement && this.table.contains(active) && !keep ? active.getAttribute('data-act') : null;
+    const keep = active?.instanceOf(HTMLElement) && this.table.contains(active) ? active.dataset.key : undefined;
+    const keepButton = active?.instanceOf(HTMLElement) && this.table.contains(active) && !keep ? active.getAttribute('data-act') : null;
     this.renderTable();
     this.buildOptions();
     this.renderNotes();

@@ -11,7 +11,7 @@ interface Props {
 
 /** Small element builder so the editor has no framework or Obsidian dependency. */
 export function h<K extends keyof HTMLElementTagNameMap>(tag: K, props: Props = {}, ...children: Child[]): HTMLElementTagNameMap[K] {
-  const el = document.createElement(tag);
+  const el = createEl(tag);
   if (props.class) el.className = props.class;
   if (props.text !== undefined) el.textContent = props.text;
   setAttrs(el, props.attrs);

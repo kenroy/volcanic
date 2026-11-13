@@ -67,8 +67,6 @@ export function setTaskDetails(root: Element, source: string, enabled: boolean):
       fill.setAttribute('width', String((Number(bar.getAttribute('width')) * progress) / 100));
       fill.setAttribute('fill', 'var(--_fg)');
       fill.setAttribute('fill-opacity', '0.28');
-      fill.setAttribute('style', 'rx:var(--_r)');
-      fill.style.pointerEvents = 'none';
       bar.after(fill);
     }
     if (!parts.length) continue;

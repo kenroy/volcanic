@@ -153,7 +153,7 @@ export class RequirementEditor implements KindEditor {
     const el = this.el.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-key="${key}"]`);
     if (!el) return false;
     el.focus();
-    if (select && el instanceof HTMLInputElement) el.select();
+    if (select && el?.instanceOf(HTMLInputElement)) el.select();
     return true;
   }
 
@@ -228,7 +228,7 @@ export class RequirementEditor implements KindEditor {
 
   private renderAll(): void {
     const active = document.activeElement;
-    const inside = active instanceof HTMLElement && this.el.contains(active);
+    const inside = active?.instanceOf(HTMLElement) && this.el.contains(active);
     const keep = inside ? active.dataset.key : undefined;
     const keepAct = inside && !keep ? active.dataset.act : undefined;
     this.renderItems();
@@ -354,7 +354,7 @@ export class RequirementEditor implements KindEditor {
     const { relations } = this.d;
     const choices = this.choices();
     const active = document.activeElement;
-    const keep = active instanceof HTMLElement && this.relList.contains(active) ? active.dataset.key : undefined;
+    const keep = active?.instanceOf(HTMLElement) && this.relList.contains(active) ? active.dataset.key : undefined;
     const rows = relations.map((r, index) => {
       const n = `relationship ${index + 1}`;
       const row = h(
