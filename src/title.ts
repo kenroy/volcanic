@@ -8,7 +8,7 @@ const EDGE = 8;
  * the drawing instead. Safe to call again after every re-render.
  */
 export function alignTitle(root: Element, align: TitleAlign): void {
-  const svg = root.matches('svg') ? (root as SVGSVGElement) : root.querySelector('svg');
+  const svg = root.instanceOf(SVGSVGElement) ? root : root.querySelector('svg');
   // Pele's class first; Mermaid.js names its title "flowchartTitleText" and similar.
   const title = svg?.querySelector('text.pele-title, text[class$="TitleText"]');
   if (!svg || !title || align === 'center') return;

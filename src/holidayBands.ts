@@ -28,7 +28,7 @@ function clear(svg: SVGSVGElement): void {
  * Safe to call again after every redraw.
  */
 export function setHolidayBands(root: Element, source: string, options: { legend: boolean; /** Where the countries switched off in the legend are remembered. */ storageKey?: string }): void {
-  const svg = root.matches('svg') ? (root as SVGSVGElement) : root.querySelector<SVGSVGElement>('svg');
+  const svg = root.instanceOf(SVGSVGElement) ? root : root.querySelector<SVGSVGElement>('svg');
   if (!svg || !svg.querySelector(':scope > g.pele-tasks')) return;
   const parsed = ganttFromMermaid(source);
   const choices = parsed.ok ? parsed.diagram.holidays.filter((c) => c.country) : [];

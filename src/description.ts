@@ -51,7 +51,7 @@ function wrap(text: SVGTextElement, words: string[], max: number): string[] {
  * pushing the rest of the drawing down to make room. Safe to call again after every redraw.
  */
 export function setDescription(root: Element, description: string, align: TitleAlign): void {
-  const svg = root.matches('svg') ? (root as SVGSVGElement) : root.querySelector<SVGSVGElement>('svg');
+  const svg = root.instanceOf(SVGSVGElement) ? root : root.querySelector<SVGSVGElement>('svg');
   if (!svg) return;
   const key = `${align}|${description}`;
   const existing = svg.querySelector(':scope > g.volcanic-desc');

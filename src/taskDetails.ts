@@ -27,7 +27,7 @@ function take(svg: SVGSVGElement): void {
  * the bar for the percentage, and a line of text after the bar. Safe to call again after every redraw.
  */
 export function setTaskDetails(root: Element, source: string, enabled: boolean): void {
-  const svg = root.matches('svg') ? (root as SVGSVGElement) : root.querySelector<SVGSVGElement>('svg');
+  const svg = root.instanceOf(SVGSVGElement) ? root : root.querySelector<SVGSVGElement>('svg');
   const tasks = svg?.querySelector(':scope > g.pele-tasks');
   if (!svg || !tasks) return;
 
