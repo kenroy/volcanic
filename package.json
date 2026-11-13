@@ -1,6 +1,6 @@
 {
   "name": "volcanic",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "A visual, accessible editor for Mermaid diagrams in Obsidian, rendered by Pele.",
   "main": "main.js",
   "type": "module",
