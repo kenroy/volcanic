@@ -2,7 +2,7 @@ import tseslint from 'typescript-eslint';
 import obsidianmd from 'eslint-plugin-obsidianmd';
 
 export default tseslint.config(
-  { ignores: ['main.js', 'dev/harness.js', 'node_modules/**', 'scripts/**', 'test/**', 'esbuild.config.mjs', 'version-bump.mjs', 'dev/serve.mjs'] },
+  { ignores: ['main.js', 'dev/harness.js', 'node_modules/**', 'scripts/**', 'vendor/**', 'test/**', 'esbuild.config.mjs', 'version-bump.mjs', 'dev/serve.mjs'] },
   ...obsidianmd.configs.recommended,
   {
     files: ['**/*.ts'],

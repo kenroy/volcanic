@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "date-holidays": "^3.39.1",
+    "deepmerge": "file:./vendor/deepmerge",
     "pele": "^1.13.0"
   },
   "author": "kenroy",
@@ -40,5 +41,8 @@
   "bugs": {
     "url": "https://github.com/kenroy/volcanic/issues"
   },
-  "homepage": "https://github.com/kenroy/volcanic#readme"
+  "homepage": "https://github.com/kenroy/volcanic#readme",
+  "overrides": {
+    "deepmerge": "$deepmerge"
+  }
 }

@@ -435,7 +435,7 @@ export function themeCss(): string {
     ['fg-on-light', 'fg-on-light'],
     ['fg-on-dark', 'fg-on-dark'],
     ...Array.from({ length: 8 }, (_, i) => [`series-${i + 1}`, `series-${i + 1}`]),
-  ].map(([pele, mine]) => `  --pele-${pele}: var(--volcanic-t-${mine}, initial) !important;`);
+  ].map(([pele, mine]) => `  --pele-${pele}: var(--volcanic-t-${mine}, initial);`);
   const mineNames = handOver.map((row) => /var\((--volcanic-t-[\w-]+)/.exec(row)![1]);
   out.push(`[${NO_THEME_ATTR}][${NO_THEME_ATTR}] {\n${mineNames.map((name) => `  ${name}: initial;`).join('\n')}\n}`);
   out.push(`[data-volcanic-theme][data-volcanic-theme],\n[${NO_THEME_ATTR}][${NO_THEME_ATTR}] {\n${handOver.join('\n')}\n}`);

@@ -4806,21 +4806,21 @@ body.theme-dark {
 }
 [data-volcanic-theme][data-volcanic-theme],
 [data-volcanic-no-theme][data-volcanic-no-theme] {
-  --pele-accent: var(--volcanic-t-accent, initial) !important;
-  --pele-surface: var(--volcanic-t-surface, initial) !important;
-  --pele-surface-alt: var(--volcanic-t-surface-alt, initial) !important;
-  --pele-border: var(--volcanic-t-border, initial) !important;
-  --pele-line: var(--volcanic-t-line, initial) !important;
-  --pele-critical: var(--volcanic-t-critical, initial) !important;
-  --pele-fg-on-light: var(--volcanic-t-fg-on-light, initial) !important;
-  --pele-fg-on-dark: var(--volcanic-t-fg-on-dark, initial) !important;
-  --pele-series-1: var(--volcanic-t-series-1, initial) !important;
-  --pele-series-2: var(--volcanic-t-series-2, initial) !important;
-  --pele-series-3: var(--volcanic-t-series-3, initial) !important;
-  --pele-series-4: var(--volcanic-t-series-4, initial) !important;
-  --pele-series-5: var(--volcanic-t-series-5, initial) !important;
-  --pele-series-6: var(--volcanic-t-series-6, initial) !important;
-  --pele-series-7: var(--volcanic-t-series-7, initial) !important;
-  --pele-series-8: var(--volcanic-t-series-8, initial) !important;
+  --pele-accent: var(--volcanic-t-accent, initial);
+  --pele-surface: var(--volcanic-t-surface, initial);
+  --pele-surface-alt: var(--volcanic-t-surface-alt, initial);
+  --pele-border: var(--volcanic-t-border, initial);
+  --pele-line: var(--volcanic-t-line, initial);
+  --pele-critical: var(--volcanic-t-critical, initial);
+  --pele-fg-on-light: var(--volcanic-t-fg-on-light, initial);
+  --pele-fg-on-dark: var(--volcanic-t-fg-on-dark, initial);
+  --pele-series-1: var(--volcanic-t-series-1, initial);
+  --pele-series-2: var(--volcanic-t-series-2, initial);
+  --pele-series-3: var(--volcanic-t-series-3, initial);
+  --pele-series-4: var(--volcanic-t-series-4, initial);
+  --pele-series-5: var(--volcanic-t-series-5, initial);
+  --pele-series-6: var(--volcanic-t-series-6, initial);
+  --pele-series-7: var(--volcanic-t-series-7, initial);
+  --pele-series-8: var(--volcanic-t-series-8, initial);
 }
 /* ── End of colour themes ── */
